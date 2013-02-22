@@ -15,7 +15,7 @@ As an example::
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from mpldatacursor import datacursor
+        from mpldatacursor import DataCursor
 
         data = np.outer(range(10), range(1, 5))
 
@@ -23,7 +23,7 @@ As an example::
         lines = ax.plot(data)
         ax.set_title('Click somewhere on a line')
 
-        datacursor(lines)
+        DataCursor(lines)
 
         plt.show()
 
