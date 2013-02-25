@@ -19,30 +19,30 @@ class DataCursor(object):
 
         Parameters:
         -----------
-        *artists*: a matplotlib artist or sequence of artists.
-            The artists to make selectable and display information for.
-        *tolerance*: number
-            The radius (in points) that the mouse click must be within to
-            select the artist.
-        *offsets*: sequence of two numbers
-            A tuple of (x,y) offsets in points from the selected point to the
-            displayed annotation box.
-        *template*: string
-            The format string to be used. Note: this uses "new-style" string
-            formatting. This will be ignored if a *formatter* function is
-            specified. This will be called as 
-            ``template.format(x=x, y=y, label=label, event=event)``, where x &
-            y are the data coordinates of the pick event, "label" is the label
-            of the artist (as displayed in the legend), and "event" is the pick
-            event object.
-        *formatter*: function
-            A function that accepts the pick event and returns a string that
-            will be displayed with annotate. Note that the picked artist can be
-            accessed with ``event.artist`` and the x and y coords can be
-            accessed with ``event.mouseevent.x``, etc.
-        *display*: string
-            Controls whether more than one annotation box will be shown.
-            Valid values are "single", "one-per-axes", or "mutiple".
+            artists: a matplotlib artist or sequence of artists.
+                The artists to make selectable and display information for.
+            tolerance: number
+                The radius (in points) that the mouse click must be within to
+                select the artist.
+            offsets: sequence of two numbers
+                A tuple of (x,y) offsets in points from the selected point to
+                the displayed annotation box.
+            template: string
+                The format string to be used. Note: this uses "new-style"
+                string formatting. This will be ignored if a *formatter*
+                function is specified. This will be called as
+                ``template.format(x=x, y=y, label=label, event=event)``, where
+                x & y are the data coordinates of the pick event, "label" is
+                the label of the artist (as displayed in the legend), and
+                "event" is the pick event object.
+            formatter: function
+                A function that accepts the pick event and returns a string
+                that will be displayed with annotate. Note that the picked
+                artist can be accessed with ``event.artist`` and the x and y
+                coords can be accessed with ``event.mouseevent.x``, etc.
+            display: string
+                Controls whether more than one annotation box will be shown.
+                Valid values are "single", "one-per-axes", or "mutiple".
 
         Additional keyword arguments are passed on to annotate.
         """
