@@ -9,6 +9,7 @@ from mpldatacursor import DataCursor
 x = np.linspace(0, 10, 100)
 
 fig, ax = plt.subplots()
+ax.set_title('Click on a line to display its label')
 
 # Plot a series of lines with increasing slopes...
 lines = []
