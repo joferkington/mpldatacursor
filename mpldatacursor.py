@@ -121,14 +121,14 @@ class DataCursor(object):
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to "pick_event".)"""
-        if self.display is not 'multiple':
+        if self.display != 'multiple':
             annotation = self.annotations[event.artist.axes]
         else:
             annotation = self.annotate(event.artist.axes, 
                                        **self._annotation_kwargs)
-            self.annotations[event] = annotation
+            self.annotations[event.artist.axes] = annotation
 
-        if self.display is 'single':
+        if self.display == 'single':
             # Hide any other annotation boxes...
             for ann in self.annotations.values():
                 ann.set_visible(False)
@@ -144,12 +144,21 @@ class HighlightingDataCursor(DataCursor):
         self.highlights = {}
 
     def _update(self, event, annotation):
+        # Decide whether or not to hide previous highlights...
         for artist in self.highlights.values():
+            if self.display == 'multiple':
+                continue
+            if self.display == 'one-per-axes':
+                if event.mouseevent.inaxes is not artist.axes:
+                    continue
             artist.set_visible(False)
+
+        # Show or create a highlight for the current event
         if event.artist in self.highlights:
             self.highlights[event.artist].set_visible(True)
         else:
             self.highlights[event.artist] = self.highlight(event)
+
         DataCursor._update(self, event, annotation)
     
     def highlight(self, event):
