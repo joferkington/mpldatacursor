@@ -138,6 +138,20 @@ class DataCursor(object):
 class HighlightingDataCursor(DataCursor):
     """A data cursor that highlights the selected Line2D artist."""
     def __init__(self, *args, **kwargs):
+        """
+        Accepts a series of artists to interactively highlight. 
+
+        Arguments are identical to ``DataCursor`` except for the following
+        keyword arguments:
+
+        Parameters:
+            artists: a matplotlib artist or sequence of artists.
+                The artists to make selectable and display information for.
+            highlight_color: a valid color specifier (string or tuple)
+                The color to set the highlighted artist to
+            highlight_width: 
+                The width of the highlighted artist
+        """
         self.highlight_color = kwargs.pop('highlight_color', 'yellow')
         self.highlight_width = kwargs.pop('highlight_width', 3)
         DataCursor.__init__(self, *args, **kwargs)
@@ -166,7 +180,8 @@ class HighlightingDataCursor(DataCursor):
     
     def create_highlight(self, artist):
         highlight = copy.copy(artist)
-        highlight.set(color=self.highlight_color, lw=self.highlight_width)
+        highlight.set(color=self.highlight_color, mec=self.highlight_color,
+                      lw=self.highlight_width, mew=self.highlight_width)
         artist.axes.add_artist(highlight)
         return highlight
 
