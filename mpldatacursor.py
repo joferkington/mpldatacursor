@@ -181,7 +181,8 @@ class HighlightingDataCursor(DataCursor):
     def create_highlight(self, artist):
         highlight = copy.copy(artist)
         highlight.set(color=self.highlight_color, mec=self.highlight_color,
-                      lw=self.highlight_width, mew=self.highlight_width)
+                      lw=self.highlight_width, mew=self.highlight_width,
+                      picker=None)
         artist.axes.add_artist(highlight)
         return highlight
 
