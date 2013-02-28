@@ -153,18 +153,21 @@ class HighlightingDataCursor(DataCursor):
                     continue
             artist.set_visible(False)
 
-        # Show or create a highlight for the current event
-        if event.artist in self.highlights:
-            self.highlights[event.artist].set_visible(True)
-        else:
-            self.highlights[event.artist] = self.highlight(event)
-
+        self.show_highlight(event)
         DataCursor._update(self, event, annotation)
+
+    def show_highlight(self, artist):
+        # Show or create a highlight for the current event
+        if artist in self.highlights:
+            self.highlights[artist].set_visible(True)
+        else:
+            self.highlights[artist] = self.create_highlight(artist)
+        return self.highlights[artist]
     
-    def highlight(self, event):
-        highlight = copy.copy(event.artist)
+    def create_highlight(self, artist):
+        highlight = copy.copy(artist)
         highlight.set(color=self.highlight_color, lw=self.highlight_width)
-        event.artist.axes.add_artist(highlight)
+        artist.axes.add_artist(highlight)
         return highlight
 
 class DraggableDataCursor(DataCursor):
