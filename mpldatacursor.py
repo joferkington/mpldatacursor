@@ -14,20 +14,20 @@ class DataCursor(object):
 
     def __init__(self, artists, tolerance=5, offsets=(-5, 5), 
                  template='x:{x:0.2f}\ny:{y:0.2f}', formatter=None, 
-                 display='one-per-axes', **kwargs):
+                 display='one-per-axes', draggable=False, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters:
         -----------
             artists: a matplotlib artist or sequence of artists.
                 The artists to make selectable and display information for.
-            tolerance: number
+            tolerance: number, optional
                 The radius (in points) that the mouse click must be within to
                 select the artist.
-            offsets: sequence of two numbers
+            offsets: sequence of two numbers, optional
                 A tuple of (x,y) offsets in points from the selected point to
                 the displayed annotation box.
-            template: string
+            template: string, optional
                 The format string to be used. Note: this uses "new-style"
                 string formatting. This will be ignored if a *formatter*
                 function is specified. This will be called as
@@ -35,14 +35,18 @@ class DataCursor(object):
                 x & y are the data coordinates of the pick event, "label" is
                 the label of the artist (as displayed in the legend), and
                 "event" is the pick event object.
-            formatter: function
+            formatter: function, optional
                 A function that accepts the pick event and returns a string
                 that will be displayed with annotate. Note that the picked
                 artist can be accessed with ``event.artist`` and the x and y
                 coords can be accessed with ``event.mouseevent.x``, etc.
-            display: string
+            display: string, optional
                 Controls whether more than one annotation box will be shown.
                 Valid values are "single", "one-per-axes", or "mutiple".
+            draggable: boolean, optional
+                Controls whether or not the annotation box will be
+                interactively draggable to a new location after being
+                displayed. Defaults to False.
 
         Additional keyword arguments are passed on to annotate.
         """
@@ -59,6 +63,7 @@ class DataCursor(object):
         if not cbook.iterable(artists):
             artists = [artists]
         self.artists = artists
+        self.draggable = draggable
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
 
@@ -98,9 +103,15 @@ class DataCursor(object):
         kwargs['xytext'] = self.offsets
 
         annotation = ax.annotate(self.template, **kwargs)
+
         # Place the annotation in the figure instead of the axes so that it 
         # doesn't get hidden behind other subplots (zorder won't fix that).
         ax.figure.texts.append(ax.texts.pop())
+
+        # Create a draggable annotation box, if required.
+        if self.draggable:
+            offsetbox.DraggableAnnotation(annotation)
+
         return annotation
 
     def _update(self, event, annotation):
@@ -121,6 +132,12 @@ class DataCursor(object):
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to "pick_event".)"""
+        # Ignore pick events for the annotation box itself (otherwise, 
+        # draggable annotation boxes won't work)
+        if event.artist in self.annotations.values():
+            return
+
+        # Get the pre-created annotation box for the axes or create a new one.
         if self.display != 'multiple':
             annotation = self.annotations[event.artist.axes]
         else:
@@ -186,19 +203,6 @@ class HighlightingDataCursor(DataCursor):
         artist.axes.add_artist(highlight)
         return highlight
 
-class DraggableDataCursor(DataCursor):
-    """
-    A data cursor whose annotation box can be dragged to a new position after
-    creation.
-    """
-    def __call__(self, event):
-        if event.artist not in self.annotations.values():
-            DataCursor.__call__(self, event)
-    def annotate(self, ax, **kwargs):
-        annotation = DataCursor.annotate(self, ax, **kwargs)
-        offsetbox.DraggableAnnotation(annotation)
-        return annotation
-
 class ImageDataCursor(DataCursor):
     """
     A data cursor for images displayed with ``imshow``. Displays x, y, and z
@@ -241,3 +245,23 @@ class ImageDataCursor(DataCursor):
         i, j = self._coords2index(event.artist, x, y)
         z = event.artist.get_array()[j,i]
         return self.template.format(x=x, y=y, z=z, label=label, event=event)
+
+class ScatterDataCursor(DataCursor):
+    """A DataCursor for a scatter plot."""
+    def __init__(self, artists, **kwargs):
+        default_template = 'x:{x:0.2f}\ny:{y:0.2f}\nz:{z:0.2f}'
+        kwargs['template'] = kwargs.pop('template', default_template)
+        DataCursor.__init__(self, artists, **kwargs)
+    __init__.__doc__ = DataCursor.__init__.__doc__
+
+    def _formatter(self, event):
+        """Default formatter function, if no `formatter` kwarg is specified.
+        Takes a pick event and returns the text string to be displayed."""
+        x, y = event.mouseevent.xdata, event.mouseevent.ydata
+        label = event.artist.get_label()
+        z = event.artist.get_array()[event.ind[0]]
+        return self.template.format(x=x, y=y, z=z, label=label, event=event)
+
+
+
+

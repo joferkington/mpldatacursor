@@ -60,15 +60,14 @@ artist instead of the x, y coordinates::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/show_artist_labels.py
 
-``DraggableDataCursor`` allows the annotation box to be
+If ``draggable=True`` is specified, the annotation box can be interactively
 dragged to a new position after creation.
 
-As an example (This also demonstrates using the ``display='multiple'`` kwarg
-that all data cursors accept.)::
+As an example (This also demonstrates using the ``display='multiple'`` kwarg)::
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from mpldatacursor import DraggableDataCursor
+        from mpldatacursor import DataCursor
 
         data = np.outer(range(10), range(1, 5))
 
@@ -76,7 +75,7 @@ that all data cursors accept.)::
         ax.set_title('Try dragging the annotation boxes')
         lines = ax.plot(data)
 
-        DraggableDataCursor(lines, display='multiple')
+        DataCursor(lines, display='multiple', draggable=True)
 
         plt.show()
 
