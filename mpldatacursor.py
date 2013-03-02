@@ -184,16 +184,13 @@ class HighlightingDataCursor(DataCursor):
                     continue
             artist.set_visible(False)
 
-        self.show_highlight(event)
-        DataCursor._update(self, event, annotation)
-
-    def show_highlight(self, artist):
         # Show or create a highlight for the current event
-        if artist in self.highlights:
-            self.highlights[artist].set_visible(True)
+        if event.artist in self.highlights:
+            self.highlights[event.artist].set_visible(True)
         else:
-            self.highlights[artist] = self.create_highlight(artist)
-        return self.highlights[artist]
+            self.highlights[event.artist] = self.create_highlight(event.artist)
+
+        DataCursor._update(self, event, annotation)
     
     def create_highlight(self, artist):
         highlight = copy.copy(artist)
