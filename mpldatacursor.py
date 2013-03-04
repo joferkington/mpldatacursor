@@ -1,7 +1,19 @@
 from matplotlib import cbook
 from matplotlib import offsetbox
 import matplotlib.transforms as mtransforms
+import matplotlib.pyplot as plt
 import copy
+
+from matplotlib.image import AxesImage
+from matplotlib.collections import PathCollection
+
+def datacursor(artists=None, ax=None, **kwargs):
+    if ax is None:
+        ax = plt.gca()
+    if artists is None:
+        artists = ax.lines + ax.patches + ax.collections + ax.containers + \
+                  ax.images
+    return DataCursor(artists, **kwargs)
 
 class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
@@ -85,12 +97,33 @@ class DataCursor(object):
         for fig in self.figures:
             fig.canvas.mpl_connect('pick_event', self)
 
-    def _formatter(self, event):
+    def event_properties(self, event):
+        def default_func(event):
+            return {}
+        registry = {
+                AxesImage : image_props,
+                PathCollection : scatter_props,
+                }
+        x, y = event.mouseevent.xdata, event.mouseevent.ydata
+        props = dict(x=x, y=y, label=event.artist.get_label(),
+                     z=None, s=None)
+        func = registry.get(type(event.artist), default_func)
+        props.update(func(event))
+        return props
+
+    def _formatter(self, event, x, y, z=None, s=None, label=None):
         """Default formatter function, if no `formatter` kwarg is specified.
         Takes a pick event and returns the text string to be displayed."""
-        x, y = event.mouseevent.xdata, event.mouseevent.ydata
-        label = event.artist.get_label()
-        return self.template.format(x=x, y=y, label=label, event=event)
+        output = []
+        for axis in [event.artist.
+        for key, val in dict(z=z, s=s).iteritems():
+            if val is not None:
+                output.append('{key}: {val:0.2f}'.format(key=key, val=val))
+
+        if label is not None and not label.startswith('_'):
+            output.append('Label: {}'.format(label))
+
+        return '\n'.join(output)
 
     def annotate(self, ax, **kwargs):
         """
@@ -122,7 +155,7 @@ class DataCursor(object):
         annotation.xy = x, y
 
         # Update the text using the specified formatter function 
-        annotation.set_text(self.formatter(event))
+        annotation.set_text(self.formatter(**self.event_properties(event)))
 
         # In case it's been hidden earlier...
         annotation.set_visible(True)
@@ -132,6 +165,7 @@ class DataCursor(object):
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to "pick_event".)"""
+        print event.ind
         # Ignore pick events for the annotation box itself (otherwise, 
         # draggable annotation boxes won't work)
         if event.artist in self.annotations.values():
@@ -200,65 +234,45 @@ class HighlightingDataCursor(DataCursor):
         artist.axes.add_artist(highlight)
         return highlight
 
-class ImageDataCursor(DataCursor):
+def _coords2index(im, x, y):
     """
-    A data cursor for images displayed with ``imshow``. Displays x, y, and z
-    values for a clicked point.  "Z" values are displayed without interpolation.
+    Converts data coordinates to index coordinates of the array.
+
+    Parameters:
+    -----------
+        im: A matplotlib image artist.
+        x: The x-coordinate in data coordinates.
+        y: The y-coordinate in data coordinates.
+
+    Returns:
+    --------
+        i, j: Index coordinates of the array associated with the image.
     """
-    def __init__(self, artists, **kwargs):
-        default_template = 'x:{x:0.2f}\ny:{y:0.2f}\nz:{z:0.2f}'
-        kwargs['template'] = kwargs.pop('template', default_template)
-        DataCursor.__init__(self, artists, **kwargs)
-    __init__.__doc__ = DataCursor.__init__.__doc__
+    xmin, xmax, ymin, ymax = im.get_extent()
+    if im.origin == 'upper':
+        ymin, ymax = ymax, ymin
+    data_extent = mtransforms.Bbox([xmin, ymin, xmax, ymax])
+    array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape])
+    trans = mtransforms.BboxTransformFrom(data_extent) +\
+            mtransforms.BboxTransformTo(array_extent)
+    return trans.transform_point([x,y]).astype(int)
 
-    def _coords2index(self, im, x, y):
-        """
-        Converts data coordinates to index coordinates of the array.
+def image_props(event):
+    """Default formatter function, if no `formatter` kwarg is specified.
+    Takes a pick event and returns the text string to be displayed."""
+    x, y = event.mouseevent.xdata, event.mouseevent.ydata
+    i, j = _coords2index(event.artist, x, y)
+    z = event.artist.get_array()[j,i]
+    return dict(z=z)
 
-        Parameters:
-        -----------
-            im: A matplotlib image artist.
-            x: The x-coordinate in data coordinates.
-            y: The y-coordinate in data coordinates.
-
-        Returns:
-        --------
-            i, j: Index coordinates of the array associated with the image.
-        """
-        xmin, xmax, ymin, ymax = im.get_extent()
-        if im.origin == 'upper':
-            ymin, ymax = ymax, ymin
-        data_extent = mtransforms.Bbox([xmin, ymin, xmax, ymax])
-        array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape])
-        trans = mtransforms.BboxTransformFrom(data_extent) +\
-                mtransforms.BboxTransformTo(array_extent)
-        return trans.transform_point([x,y]).astype(int)
-
-    def _formatter(self, event):
-        """Default formatter function, if no `formatter` kwarg is specified.
-        Takes a pick event and returns the text string to be displayed."""
-        x, y = event.mouseevent.xdata, event.mouseevent.ydata
-        label = event.artist.get_label()
-        i, j = self._coords2index(event.artist, x, y)
-        z = event.artist.get_array()[j,i]
-        return self.template.format(x=x, y=y, z=z, label=label, event=event)
-
-class ScatterDataCursor(DataCursor):
-    """A DataCursor for a scatter plot."""
-    def __init__(self, artists, **kwargs):
-        default_template = 'x:{x:0.2f}\ny:{y:0.2f}\nz:{z:0.2f}'
-        kwargs['template'] = kwargs.pop('template', default_template)
-        DataCursor.__init__(self, artists, **kwargs)
-    __init__.__doc__ = DataCursor.__init__.__doc__
-
-    def _formatter(self, event):
-        """Default formatter function, if no `formatter` kwarg is specified.
-        Takes a pick event and returns the text string to be displayed."""
-        x, y = event.mouseevent.xdata, event.mouseevent.ydata
-        label = event.artist.get_label()
-        z = event.artist.get_array()[event.ind[0]]
-        return self.template.format(x=x, y=y, z=z, label=label, event=event)
-
-
-
+def scatter_props(event):
+    """Default formatter function, if no `formatter` kwarg is specified.
+    Takes a pick event and returns the text string to be displayed."""
+    z = event.artist.get_array()[event.ind]
+    sizes = event.artist.get_sizes()
+    if len(sizes) == 1:
+        s = None
+    else:
+        s = sizes[event.ind]
+    return dict(z=z, s=s)
 
