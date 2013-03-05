@@ -18,12 +18,6 @@ def datacursor(artists=None, ax=None, **kwargs):
 class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
-
-    default_annotation_kwargs = dict(xy=(0, 0), ha='right', 
-                textcoords='offset points', va='bottom',
-                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
-                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
-
     def __init__(self, artists, tolerance=5, offsets=(-5, 5), 
                  template='x:{x:0.2f}\ny:{y:0.2f}', formatter=None, 
                  display='one-per-axes', draggable=False, **kwargs):
@@ -124,6 +118,11 @@ class DataCursor(object):
             output.append('Label: {}'.format(label))
 
         return '\n'.join(output)
+
+    default_annotation_kwargs = dict(xy=(0, 0), ha='right', 
+                textcoords='offset points', va='bottom',
+                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     def annotate(self, ax, **kwargs):
         """
