@@ -147,7 +147,7 @@ class DataCursor(object):
 
         return annotation
 
-    def _update(self, event, annotation):
+    def update(self, event, annotation):
         """Update the specified annotation."""
         # Rather than trying to interpolate, just display the clicked coords
         # This will only be called if it's within "tolerance", anyway.
@@ -184,7 +184,7 @@ class DataCursor(object):
             for ann in self.annotations.values():
                 ann.set_visible(False)
 
-        self._update(event, annotation)
+        self.update(event, annotation)
 
 class HighlightingDataCursor(DataCursor):
     """A data cursor that highlights the selected Line2D artist."""
@@ -208,7 +208,7 @@ class HighlightingDataCursor(DataCursor):
         DataCursor.__init__(self, *args, **kwargs)
         self.highlights = {}
 
-    def _update(self, event, annotation):
+    def update(self, event, annotation):
         # Decide whether or not to hide previous highlights...
         for artist in self.highlights.values():
             if self.display == 'multiple':
@@ -224,7 +224,7 @@ class HighlightingDataCursor(DataCursor):
         else:
             self.highlights[event.artist] = self.create_highlight(event.artist)
 
-        DataCursor._update(self, event, annotation)
+        DataCursor.update(self, event, annotation)
     
     def create_highlight(self, artist):
         highlight = copy.copy(artist)
