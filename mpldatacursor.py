@@ -97,7 +97,7 @@ class DataCursor(object):
         for fig in self.figures:
             fig.canvas.mpl_connect('pick_event', self)
 
-    def event_properties(self, event):
+    def event_info(self, event):
         def default_func(event):
             return {}
         registry = {
@@ -106,7 +106,7 @@ class DataCursor(object):
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(),
-                     z=None, s=None)
+                     z=None, s=None, c=None)
         func = registry.get(type(event.artist), default_func)
         props.update(func(event))
         return props
@@ -155,7 +155,7 @@ class DataCursor(object):
         annotation.xy = x, y
 
         # Update the text using the specified formatter function 
-        annotation.set_text(self.formatter(**self.event_properties(event)))
+        annotation.set_text(self.formatter(**self.event_info(event)))
 
         # In case it's been hidden earlier...
         annotation.set_visible(True)
@@ -234,6 +234,8 @@ class HighlightingDataCursor(DataCursor):
         artist.axes.add_artist(highlight)
         return highlight
 
+#-- Artist-specific pick info functions --------------------------------------
+
 def _coords2index(im, x, y):
     """
     Converts data coordinates to index coordinates of the array.
@@ -258,21 +260,56 @@ def _coords2index(im, x, y):
     return trans.transform_point([x,y]).astype(int)
 
 def image_props(event):
-    """Default formatter function, if no `formatter` kwarg is specified.
-    Takes a pick event and returns the text string to be displayed."""
+    """
+    Get information for a pick event on an ``AxesImage`` artist. Returns a dict
+    of "i" & "j" index values of the image for the point clicked, and "z": the
+    (uninterpolated) value of the image at i,j.
+    
+    Parameters:
+    -----------
+        event : PickEvent
+            The pick event to process
+
+    Returns:
+    --------
+        props : dict
+            A dict with keys: x, y, z, i, j
+    """
     x, y = event.mouseevent.xdata, event.mouseevent.ydata
     i, j = _coords2index(event.artist, x, y)
     z = event.artist.get_array()[j,i]
-    return dict(z=z)
+    return dict(z=z, i=i, j=j)
 
 def scatter_props(event):
-    """Default formatter function, if no `formatter` kwarg is specified.
-    Takes a pick event and returns the text string to be displayed."""
-    z = event.artist.get_array()[event.ind]
+    """
+    Get information for a pick event on a PathCollection artist (usually 
+    created with ``scatter``). 
+ 
+    Parameters:
+    -----------
+        event : PickEvent
+            The pick event to process
+    
+    Returns:
+    --------
+        A dict with keys: 
+            "c": The value of the color array at the point clicked.
+            "s": The value of the size array at the point clicked.
+            "z": Identical to "c". Specified for convenience (unified
+                 ``template`` kwargs to ``DataCursor``).
+        If constant values were specified to ``c`` or ``s`` when calling 
+        ``scatter``, "c" and/or "z" will be ``None``.
+    """
+    arr = event.artist.get_array()
+    if len(arr) == 1:
+        z = None
+    else:
+        z = arr[event.ind]
+
     sizes = event.artist.get_sizes()
     if len(sizes) == 1:
         s = None
     else:
         s = sizes[event.ind]
-    return dict(z=z, s=s)
+    return dict(z=z, s=s, c=z)
 
