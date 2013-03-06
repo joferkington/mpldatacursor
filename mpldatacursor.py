@@ -117,7 +117,8 @@ class DataCursor(object):
             if val is not None:
                 output.append('{key}: {val:0.3g}'.format(key=key, val=val))
 
-        if label is not None and not label.startswith('_'):
+        # label may be None or an empty string (for an un-labeled AxesImage)...
+        if label and not label.startswith('_'):
             output.append('Label: {}'.format(label))
 
         return '\n'.join(output)
