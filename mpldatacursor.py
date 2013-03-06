@@ -167,7 +167,6 @@ class DataCursor(object):
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to "pick_event".)"""
-        print event.ind
         # Ignore pick events for the annotation box itself (otherwise, 
         # draggable annotation boxes won't work)
         if event.artist in self.annotations.values():
