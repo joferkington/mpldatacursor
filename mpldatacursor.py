@@ -105,11 +105,13 @@ class DataCursor(object):
         props.update(func(event))
         return props
 
-    def _formatter(self, event, x, y, z=None, s=None, label=None):
-        """Default formatter function, if no `formatter` kwarg is specified.
-        Takes a pick event and returns the text string to be displayed."""
+    def _formatter(self, event, x, y, z=None, s=None, label=None, **kwargs):
+        """
+        Default formatter function, if no `formatter` kwarg is specified.Takes
+        information about the pick event as a series of kwargs and returns the
+        string to be displayed.
+        """
         output = []
-        for axis in [event.artist.
         for key, val in dict(z=z, s=s).iteritems():
             if val is not None:
                 output.append('{key}: {val:0.2f}'.format(key=key, val=val))
