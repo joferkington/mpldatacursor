@@ -1,3 +1,4 @@
+import numpy as np
 from matplotlib import cbook
 from matplotlib import offsetbox
 from matplotlib import _pylab_helpers as pylab_helpers
@@ -6,6 +7,7 @@ import copy
 
 from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection
+from matplotlib.lines import Line2D
 
 def datacursor(artists=None, axes=None, tolerance=5, formatter=None, 
                display='one-per-axes', draggable=False, **kwargs):
@@ -165,7 +167,7 @@ class DataCursor(object):
         registry = {
                 AxesImage : image_props,
                 PathCollection : scatter_props,
-#                Line2D : line_props,
+                Line2D : line_props,
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label())
@@ -338,12 +340,50 @@ def image_props(event):
     Returns:
     --------
         props : dict
-            A dict with keys: x, y, z, i, j
+            A dict with keys: z, i, j
     """
     x, y = event.mouseevent.xdata, event.mouseevent.ydata
     i, j = _coords2index(event.artist, x, y)
     z = event.artist.get_array()[j,i]
     return dict(z=z, i=i, j=j)
+
+def line_props(event):
+    """
+    Get information for a pick event on a Line2D artist (as created with
+    ``plot``.)
+
+    This will yield x and y values that are interpolated between verticies 
+    (instead of just being the position of the mouse) or snapped to the nearest
+    vertex only the vertices are drawn.
+ 
+    Parameters:
+    -----------
+        event : PickEvent
+            The pick event to process
+
+    Returns:
+    --------
+        props : dict
+            A dict with keys: x & y
+    """
+    xclick, yclick = event.mouseevent.xdata, event.mouseevent.ydata
+    i = event.ind[0]
+    xorig, yorig = event.artist.get_xydata().T
+
+    # For points-only lines, snap to the nearest point (or if we're at the last
+    # point, don't bother interpolating and do the same thing.)
+    if event.artist.get_linestyle() == 'none' or i == xorig.size - 1:
+        return dict(x=xorig[i], y=yorig[i])
+
+    # Interpolate between the indicies so that the x, y coords are precisely
+    # on the line instead of at the point clicked.
+    (x0, x1), (y0, y1) = xorig[[i, i+1]], yorig[[i, i+1]]
+    vec1 = np.array([x1 - x0, y1 - y0])
+    vec2 = np.array([xclick - x0, yclick - y0])
+    dist_along = vec1.dot(vec2)
+    x, y = np.array([x0, y0]) + dist_along * vec1
+
+    return dict(x=x, y=y)
 
 def scatter_props(event):
     """
@@ -365,15 +405,25 @@ def scatter_props(event):
         If constant values were specified to ``c`` or ``s`` when calling 
         ``scatter``, "c" and/or "z" will be ``None``.
     """
+    # Use only the first item, if multiple items were selected
+    ind = event.ind[0]
+
     arr = event.artist.get_array()
+    # If a constant color/c/z was specified, don't return it
     if len(arr) == 1:
         z = None
     else:
-        z = arr[event.ind]
+        z = arr[ind]
 
+    # If a constant size/s was specified, don't return it
     sizes = event.artist.get_sizes()
     if len(sizes) == 1:
         s = None
     else:
-        s = sizes[event.ind]
-    return dict(z=z, s=s, c=z)
+        s = sizes[ind]
+
+    # Snap to the x, y of the point...
+    xorig, yorig = event.artist.get_offsets().T
+    x, y = xorig[ind], yorig[ind]
+
+    return dict(x=x, y=y, z=z, s=s, c=z)
