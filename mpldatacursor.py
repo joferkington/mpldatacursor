@@ -75,13 +75,14 @@ def datacursor(artists=None, axes=None, tolerance=5, formatter=None,
                 + ax.images
         return artists
 
-    if not cbook.iterable(axes):
-        axes = [axes]
-
     # If no axes are specified, get all axes.
     if axes is None:
-        figs = pylab_helpers.Gcf.figs.values()
+        managers = pylab_helpers.Gcf.get_all_fig_managers()
+        figs = [manager.canvas.figure for manager in managers]
         axes = [ax for fig in figs for ax in fig.axes]
+
+    if not cbook.iterable(axes):
+        axes = [axes]
 
     # If no artists are specified, get all manually plotted artists in all of 
     # the specified axes.
