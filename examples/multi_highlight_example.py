@@ -50,9 +50,10 @@ class MultiHighlight(mpldatacursor.HighlightingDataCursor):
         artists = self.artist_map.values()
         mpldatacursor.HighlightingDataCursor.__init__(self, artists, **kwargs)
 
-    def show_highlight(self, event):
-        paired_artist = self.artist_map[event.artist]
-        mpldatacursor.HighlightingDataCursor.show_highlight(self, event.artist)
+    def show_highlight(self, artist):
+        paired_artist = self.artist_map[artist]
+        mpldatacursor.HighlightingDataCursor.show_highlight(self, artist)
         mpldatacursor.HighlightingDataCursor.show_highlight(self, paired_artist)
 
-main()
+if __name__ == '__main__':
+    main()

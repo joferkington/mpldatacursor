@@ -287,16 +287,20 @@ class HighlightingDataCursor(DataCursor):
                 if event.mouseevent.inaxes is not artist.axes:
                     continue
             artist.set_visible(False)
-
-        # Show or create a highlight for the current event
-        if event.artist in self.highlights:
-            self.highlights[event.artist].set_visible(True)
-        else:
-            self.highlights[event.artist] = self.create_highlight(event.artist)
-
+        self.show_highlight(event.artist)
         DataCursor.update(self, event, annotation)
+
+    def show_highlight(self, artist):
+        """Show or create a highlight for a givent artist."""
+        # This is a separate method to make subclassing easier.
+        if artist in self.highlights:
+            self.highlights[artist].set_visible(True)
+        else:
+            self.highlights[artist] = self.create_highlight(artist)
+        return self.highlights[artist]
     
     def create_highlight(self, artist):
+        """Create a new highlight for the given artist."""
         highlight = copy.copy(artist)
         highlight.set(color=self.highlight_color, mec=self.highlight_color,
                       lw=self.highlight_width, mew=self.highlight_width,
