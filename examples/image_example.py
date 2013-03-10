@@ -5,15 +5,15 @@ one data cursor instead of one-per-axes.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from mpldatacursor import ImageDataCursor
+from mpldatacursor import datacursor
 
 data = np.arange(100).reshape((10,10))
 
 fig, axes = plt.subplots(ncols=2)
-im1 = axes[0].imshow(data, interpolation='nearest', origin='lower')
-im2 = axes[1].imshow(data, interpolation='nearest', origin='upper',
+axes[0].imshow(data, interpolation='nearest', origin='lower')
+axes[1].imshow(data, interpolation='nearest', origin='upper',
                      extent=[200, 300, 400, 500])
-ImageDataCursor([im1, im2], display='single')
+datacursor(display='single')
 
 fig.suptitle('Click anywhere on the image')
 
