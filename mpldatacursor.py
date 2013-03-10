@@ -9,8 +9,7 @@ from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 
-def datacursor(artists=None, axes=None, tolerance=5, formatter=None, 
-               display='one-per-axes', draggable=False, **kwargs):
+def datacursor(artists=None, axes=None, **kwargs):
     """
     Create an interactive data cursor for the specified artists or specified 
     axes. The data cursor displays information about a selected artist in a
