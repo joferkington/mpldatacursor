@@ -42,16 +42,16 @@ def datacursor(artists=None, axes=None, tolerance=5, formatter=None,
                 event: a matplotlib ``PickEvent``
                     The pick event that was fired (note that the selected 
                     artist can be accessed through ``event.artist``).
-                z: number or None
+                label: string or None
+                    The legend label of the selected artist.
+            Some selected artists may supply additional keyword arguments that
+            are not always present, for example:
+                z: number
                     The "z" (usually color or array) value, if present. For an
                     ``AxesImage`` (as created by ``imshow``), this will be the 
                     uninterpolated array value at the point clicked. For a 
                     ``PathCollection`` (as created by ``scatter``) this will be
                     the "c" value if an array was passed to "c".
-                label: string or None
-                    The legend label of the selected artist.
-            Some selected artists may supply additional keyword arguments that
-            are not always present, for example:
                 i, j: ints
                     The row, column indicies of the selected point for an 
                 s: number
@@ -158,15 +158,16 @@ class DataCursor(object):
             fig.canvas.mpl_connect('pick_event', self)
 
     def event_info(self, event):
+        """Get a dict of info for the artist selected by "event"."""
         def default_func(event):
             return {}
         registry = {
                 AxesImage : image_props,
                 PathCollection : scatter_props,
+#                Line2D : line_props,
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
-        props = dict(x=x, y=y, label=event.artist.get_label(),
-                     z=None, s=None, c=None)
+        props = dict(x=x, y=y, label=event.artist.get_label())
         func = registry.get(type(event.artist), default_func)
         props.update(func(event))
         return props
