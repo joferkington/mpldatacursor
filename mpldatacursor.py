@@ -1,25 +1,105 @@
 from matplotlib import cbook
 from matplotlib import offsetbox
+from matplotlib import _pylab_helpers as pylab_helpers
 import matplotlib.transforms as mtransforms
-import matplotlib.pyplot as plt
 import copy
 
 from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection
 
-def datacursor(artists=None, ax=None, **kwargs):
-    if ax is None:
-        ax = plt.gca()
+def datacursor(artists=None, axes=None, tolerance=5, formatter=None, 
+               display='one-per-axes', draggable=False, **kwargs):
+    """
+    Create an interactive data cursor for the specified artists or specified 
+    axes. The data cursor displays information about a selected artist in a
+    "popup" annotation box.
+
+    If a specific sequence of artists is given, only the specified artists will
+    be interactively selectable.  Otherwise, all manually-plotted artists in 
+    *axes* will be used (*axes* defaults to all axes in all figures).
+
+    Parameters:
+    -----------
+        artists: a matplotlib artist or sequence of artists, optional
+            The artists to make selectable and display information for. If this
+            is not specified, then all manually plotted artists in *axes* will
+            be used.
+        axes: a matplotlib axes of sequence of axes, optional
+            The axes to selected artists from if a sequence of artists is not
+            specified.  If *axes* is not specified, then all available axes in
+            all figures will be used.
+        tolerance: number, optional
+            The radius (in points) that the mouse click must be within to
+            select the artist.
+        formatter: callable, optional
+            A function that accepts arbitrary kwargs and returns a string
+            that will be displayed with annotate. Often, it is convienent to
+            pass in the format method of a template string, e.g. 
+            ``formatter="{label}".format``.
+            Keyword arguments passed in to the *formatter* function:
+                x, y: floats
+                    The x and y data coordinates of the clicked point
+                event: a matplotlib ``PickEvent``
+                    The pick event that was fired (note that the selected 
+                    artist can be accessed through ``event.artist``).
+                z: number or None
+                    The "z" (usually color or array) value, if present. For an
+                    ``AxesImage`` (as created by ``imshow``), this will be the 
+                    uninterpolated array value at the point clicked. For a 
+                    ``PathCollection`` (as created by ``scatter``) this will be
+                    the "c" value if an array was passed to "c".
+                label: string or None
+                    The legend label of the selected artist.
+            Some selected artists may supply additional keyword arguments that
+            are not always present, for example:
+                i, j: ints
+                    The row, column indicies of the selected point for an 
+                s: number
+                    The size of the selected item in a ``PathCollection`` if a
+                    size array is specified.
+                c: number
+                    The array value displayed as color for a ``PathCollection``
+                    if a "c" array is specified (identical to "z").
+        display: string, optional
+            Controls whether more than one annotation box will be shown.
+            Valid values are "single", "one-per-axes", or "mutiple".
+        draggable: boolean, optional
+            Controls whether or not the annotation box will be
+            interactively draggable to a new location after being
+            displayed. Defaults to False.
+
+    Additional keyword arguments are passed on to annotate.
+    """
+    def plotted_artists(ax):
+        artists = ax.lines + ax.patches + ax.collections + ax.containers \
+                + ax.images
+        return artists
+
+    if not cbook.iterable(axes):
+        axes = [axes]
+
+    # If no axes are specified, get all axes.
+    if axes is None:
+        figs = pylab_helpers.Gcf.figs.values()
+        axes = [ax for fig in figs for ax in fig.axes]
+
+    # If no artists are specified, get all manually plotted artists in all of 
+    # the specified axes.
     if artists is None:
-        artists = ax.lines + ax.patches + ax.collections + ax.containers + \
-                  ax.images
+        artists = [artist for ax in axes for artist in plotted_artists(ax)]
+
     return DataCursor(artists, **kwargs)
 
 class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
-    def __init__(self, artists, tolerance=5, offsets=(-5, 5), 
-                 template='x:{x:0.2f}\ny:{y:0.2f}', formatter=None, 
+
+    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-5, 5), ha='right',  
+                textcoords='offset points', va='bottom',
+                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+
+    def __init__(self, artists, tolerance=5, formatter=None, 
                  display='one-per-axes', draggable=False, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
@@ -30,17 +110,6 @@ class DataCursor(object):
             tolerance: number, optional
                 The radius (in points) that the mouse click must be within to
                 select the artist.
-            offsets: sequence of two numbers, optional
-                A tuple of (x,y) offsets in points from the selected point to
-                the displayed annotation box.
-            template: string, optional
-                The format string to be used. Note: this uses "new-style"
-                string formatting. This will be ignored if a *formatter*
-                function is specified. This will be called as
-                ``template.format(x=x, y=y, label=label, event=event)``, where
-                x & y are the data coordinates of the pick event, "label" is
-                the label of the artist (as displayed in the legend), and
-                "event" is the pick event object.
             formatter: function, optional
                 A function that accepts the pick event and returns a string
                 that will be displayed with annotate. Note that the picked
@@ -56,9 +125,6 @@ class DataCursor(object):
 
         Additional keyword arguments are passed on to annotate.
         """
-        self.template = template
-        self.offsets = offsets
-
         valid_display_options = ['single', 'one-per-axes', 'multiple']
         if display in valid_display_options:
             self.display = display
@@ -118,15 +184,11 @@ class DataCursor(object):
                 output.append('{key}: {val:0.3g}'.format(key=key, val=val))
 
         # label may be None or an empty string (for an un-labeled AxesImage)...
+        # Un-labeled Line2D's will have labels that start with an underscore
         if label and not label.startswith('_'):
             output.append('Label: {}'.format(label))
 
         return '\n'.join(output)
-
-    default_annotation_kwargs = dict(xy=(0, 0), ha='right', 
-                textcoords='offset points', va='bottom',
-                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
-                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     def annotate(self, ax, **kwargs):
         """
@@ -136,9 +198,8 @@ class DataCursor(object):
         for key in self.default_annotation_kwargs:
             if key not in kwargs:
                 kwargs[key] = self.default_annotation_kwargs[key]
-        kwargs['xytext'] = self.offsets
 
-        annotation = ax.annotate(self.template, **kwargs)
+        annotation = ax.annotate('This text will be reset', **kwargs)
 
         # Place the annotation in the figure instead of the axes so that it 
         # doesn't get hidden behind other subplots (zorder won't fix that).
@@ -314,4 +375,3 @@ def scatter_props(event):
     else:
         s = sizes[event.ind]
     return dict(z=z, s=s, c=z)
-
