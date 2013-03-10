@@ -237,13 +237,17 @@ class DataCursor(object):
         if event.artist in self.annotations.values():
             return
 
+        ax = event.artist.axes
         # Get the pre-created annotation box for the axes or create a new one.
         if self.display != 'multiple':
-            annotation = self.annotations[event.artist.axes]
+            annotation = self.annotations[ax]
+        elif event.mouseevent in self.annotations:
+            # Avoid creating multiple datacursors for the same click event
+            # when several artists are selected.
+            annotation = self.annotations[event.mouseevent]
         else:
-            annotation = self.annotate(event.artist.axes, 
-                                       **self._annotation_kwargs)
-            self.annotations[event.artist.axes] = annotation
+            annotation = self.annotate(ax, **self._annotation_kwargs)
+            self.annotations[event.mouseevent] = annotation
 
         if self.display == 'single':
             # Hide any other annotation boxes...
