@@ -113,10 +113,10 @@ class DataCursor(object):
                 The radius (in points) that the mouse click must be within to
                 select the artist.
             formatter: function, optional
-                A function that accepts the pick event and returns a string
-                that will be displayed with annotate. Note that the picked
-                artist can be accessed with ``event.artist`` and the x and y
-                coords can be accessed with ``event.mouseevent.x``, etc.
+                A function that accepts arbitrary kwargs and returns a string
+                that will be displayed with annotate. The "x", "y", "event",
+                and "label" kwargs will always be present. See the "datacursor"
+                function docstring for more information.
             display: string, optional
                 Controls whether more than one annotation box will be shown.
                 Valid values are "single", "one-per-axes", or "mutiple".
