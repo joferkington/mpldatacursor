@@ -3,6 +3,14 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+Major Changes in Version 0.2
+----------------------------
+
+Version 0.2 introduces the ``datacursor`` convenience function, which is now
+the recommended way of initializing ``DataCursor``'s.  Additionally, the
+``ImageDataCursor`` class has been removed, and its functionality has been
+incorporated into ``DataCursor``.
+
 Basic Usage
 -----------
 ``mpldatacursor`` offers a few different styles of interaction through the 
