@@ -5,15 +5,15 @@ boxes) for matplotlib.
 
 Basic Usage
 -----------
-``mpldatacursor`` offers a few different styles of interaction. The basic
-``DataCursor`` displays the x, y coordinates of the selected artist in an
-annotation box.  
+``mpldatacursor`` offers a few different styles of interaction through the 
+``datacursor`` function. 
 
-As an example::
+As an example, this displays the x, y coordinates of the selected artist in an
+annotation box::
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from mpldatacursor import DataCursor
+        from mpldatacursor import datacursor
 
         data = np.outer(range(10), range(1, 5))
 
@@ -21,7 +21,7 @@ As an example::
         lines = ax.plot(data)
         ax.set_title('Click somewhere on a line')
 
-        DataCursor(lines)
+        datacursor(lines)
 
         plt.show()
 
@@ -29,16 +29,38 @@ As an example::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/basic.py
 
-The displayed text can be controlled either by using a template string (the
-``template`` kwarg) or by passing a function that accepts a pick event and
-returns the string to be displayed (the ``formatter`` kwarg).
+If no artist or sequence of artists is specified, all manually plotted artists
+in all axes in all figures will be activated. (This can be limited to only
+certain axes by passing in an axes object or a sequence of axes to the ``axes``
+kwarg.)
 
-As an example of using the ``template`` kwarg to display the label of the
+As an example (the output is identical to the first example)::
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from mpldatacursor import datacursor
+
+        data = np.outer(range(10), range(1, 5))
+
+        plt.plot(data)
+        plt.title('Click somewhere on a line')
+
+        datacursor()
+
+        plt.show()
+
+The displayed text can be controlled either by using the ``formatter`` kwarg, 
+which expects a function that accepts an arbitrary sequence of kwargs and
+returns the string to be displayed. Often, it's convenient to pass in the
+``format`` method of a template string (e.g. 
+``formatter="longitude:{x:.2f}\nlatitude{y:.2f}".format``).
+
+As an example of using the ``formatter`` kwarg to display only the label of the
 artist instead of the x, y coordinates::
 
         import numpy as np
         import matplotlib.pyplot as plt
-        from mpldatacursor import DataCursor
+        from mpldatacursor import datacursor
 
         x = np.linspace(0, 10, 100)
 
@@ -46,13 +68,11 @@ artist instead of the x, y coordinates::
         ax.set_title('Click on a line to display its label')
 
         # Plot a series of lines with increasing slopes...
-        lines = []
         for i in range(1, 20):
-            line, = ax.plot(x, i * x, label='$y = {}x$'.format(i))
-            lines.append(line)
+            ax.plot(x, i * x, label='$y = {}x$'.format(i))
 
         # Use a DataCursor to interactively display the label for a selected line...
-        DataCursor(lines, template='{label}')
+        datacursor(formatter='{label}'.format)
 
         plt.show()
 
@@ -67,15 +87,15 @@ As an example (This also demonstrates using the ``display='multiple'`` kwarg)::
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from mpldatacursor import DataCursor
+        from mpldatacursor import datacursor
 
         data = np.outer(range(10), range(1, 5))
 
         fig, ax = plt.subplots()
         ax.set_title('Try dragging the annotation boxes')
-        lines = ax.plot(data)
+        ax.plot(data)
 
-        DataCursor(lines, display='multiple', draggable=True)
+        datacursor(display='multiple', draggable=True)
 
         plt.show()
 
@@ -109,22 +129,21 @@ displaying the selected coordinates.::
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/highlighting_example.py
 
 
-The array value at the selected point in an image can be displayed using
-``ImageDataCursor``. This example also demonstrates using the
-``display="single"`` option to display only one data cursor instead of
-one-per-axes.::
+``datacursor`` will also display the array value at the selected point in an
+image. This example also demonstrates using the ``display="single"`` option to
+display only one data cursor instead of one-per-axes.::
 
         import matplotlib.pyplot as plt
         import numpy as np
-        from mpldatacursor import ImageDataCursor
+        from mpldatacursor import datacursor
 
         data = np.arange(100).reshape((10,10))
 
         fig, axes = plt.subplots(ncols=2)
-        im1 = axes[0].imshow(data, interpolation='nearest', origin='lower')
-        im2 = axes[1].imshow(data, interpolation='nearest', origin='upper',
+        axes[0].imshow(data, interpolation='nearest', origin='lower')
+        axes[1].imshow(data, interpolation='nearest', origin='upper',
                              extent=[200, 300, 400, 500])
-        ImageDataCursor([im1, im2], display='single')
+        datacursor(display='single')
 
         fig.suptitle('Click anywhere on the image')
 
