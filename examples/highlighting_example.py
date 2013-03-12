@@ -16,6 +16,6 @@ for i in range(1, 20):
     line, = ax.plot(x, i * x, label='$y = {}x$'.format(i))
     lines.append(line)
 
-HighlightingDataCursor(lines, formatter='{label}'.format)
+HighlightingDataCursor(lines)
 
 plt.show()
