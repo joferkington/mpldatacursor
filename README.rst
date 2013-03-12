@@ -120,7 +120,7 @@ displaying the selected coordinates.::
             line, = ax.plot(x, i * x, label='$y = {}x$'.format(i))
             lines.append(line)
 
-        HighlightingDataCursor(lines, template='{label}')
+        HighlightingDataCursor(lines)
 
         plt.show()
 
