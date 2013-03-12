@@ -182,7 +182,7 @@ class DataCursor(object):
         string to be displayed.
         """
         output = []
-        for key, val in dict(x=x, y=y, z=z, s=s).iteritems():
+        for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
             if val is not None:
                 output.append('{key}: {val:0.3g}'.format(key=key, val=val))
 
