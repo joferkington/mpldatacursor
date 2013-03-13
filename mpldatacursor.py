@@ -233,8 +233,9 @@ class DataCursor(object):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to "pick_event".)"""
         # Ignore pick events for the annotation box itself (otherwise, 
-        # draggable annotation boxes won't work)
-        if event.artist in self.annotations.values():
+        # draggable annotation boxes won't work) and pick events not for the
+        # artists that this particular data cursor manages.
+        if event.artist not in self.artists:
             return
 
         ax = event.artist.axes
