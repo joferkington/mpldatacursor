@@ -223,6 +223,13 @@ class DataCursor(object):
             if key not in kwargs:
                 kwargs[key] = self.default_annotation_kwargs[key]
 
+        # Make text alignment match the specified offsets (this allows easier
+        # changing of relative position of text box...)
+        dx, dy = kwargs['xytext']
+        horizontal = 'left' if dx > 0 else 'right'
+        vertical = 'bottom' if dy > 0 else 'top'
+        kwargs['ha'], kwargs['va'] = horizontal, vertical
+
         annotation = ax.annotate('This text will be reset', **kwargs)
 
         # Place the annotation in the figure instead of the axes so that it 
