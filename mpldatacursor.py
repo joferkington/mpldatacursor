@@ -117,7 +117,7 @@ class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
 
-    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-5, 5), ha='right',  
+    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15), ha='right',  
                 textcoords='offset points', va='bottom',
                 bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
