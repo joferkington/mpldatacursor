@@ -26,6 +26,7 @@ from matplotlib import _pylab_helpers as pylab_helpers
 import matplotlib.transforms as mtransforms
 import copy
 
+from matplotlib.contour import ContourSet
 from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
@@ -148,6 +149,19 @@ class DataCursor(object):
 
         Additional keyword arguments are passed on to annotate.
         """
+        def filter_artists(artists):
+            """Replace ContourSets with their constituent artists."""
+            output = []
+            for item in artists:
+                if isinstance(item, ContourSet):
+                    output += item.collections
+                else:
+                    output.append(item)
+            return output
+        if not cbook.iterable(artists):
+            artists = [artists]
+        self.artists = filter_artists(artists)
+
         valid_display_options = ['single', 'one-per-axes', 'multiple']
         if display in valid_display_options:
             self.display = display
@@ -155,9 +169,6 @@ class DataCursor(object):
             raise ValueError('"display" must be one of the following: '\
                              ', '.join(valid_display_options))
 
-        if not cbook.iterable(artists):
-            artists = [artists]
-        self.artists = artists
         self.draggable = draggable
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
