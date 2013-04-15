@@ -49,6 +49,8 @@ As an example (the output is identical to the first example)::
 
         plt.show()
 
+Controlling the Displayed Text
+------------------------------
 The displayed text can be controlled either by using the ``formatter`` kwarg, 
 which expects a function that accepts an arbitrary sequence of kwargs and
 returns the string to be displayed. Often, it's convenient to pass in the
@@ -80,6 +82,8 @@ artist instead of the x, y coordinates::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/show_artist_labels.py
 
+Working with Images
+-------------------
 ``datacursor`` will also display the array value at the selected point in an
 image. This example also demonstrates using the ``display="single"`` option to
 display only one data cursor instead of one-per-axes.::
@@ -104,6 +108,8 @@ display only one data cursor instead of one-per-axes.::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/image_example.py
 
+Draggable Boxes
+---------------
 If ``draggable=True`` is specified, the annotation box can be interactively
 dragged to a new position after creation.
 
@@ -127,7 +133,8 @@ As an example (This also demonstrates using the ``display='multiple'`` kwarg)::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/draggable_example.py
 
-
+Further Customization
+---------------------
 Additional keyword arguments to ``datacursor`` are passed on to ``annotate``.
 This allows one to control the appearance and location of the "popup box",
 arrow, etc.  As a basic example::
@@ -158,6 +165,8 @@ arrow, etc.  As a basic example::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/change_popup_color.py
 
+Highlighting Selected Lines
+---------------------------
 ``HighlightingDataCursor`` highlights a ``Line2D`` artist in addition to
 displaying the selected coordinates.::
 
