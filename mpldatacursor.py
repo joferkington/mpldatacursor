@@ -201,7 +201,7 @@ class DataCursor(object):
                 Line2D : line_props,
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
-        props = dict(x=x, y=y, label=event.artist.get_label())
+        props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
         func = registry.get(type(event.artist), default_func)
         props.update(func(event))
         return props
