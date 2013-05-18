@@ -458,14 +458,14 @@ def scatter_props(event):
 
     arr = event.artist.get_array()
     # If a constant color/c/z was specified, don't return it
-    if len(arr) == 1:
+    if arr is None or len(arr) == 1:
         z = None
     else:
         z = arr[ind]
 
     # If a constant size/s was specified, don't return it
     sizes = event.artist.get_sizes()
-    if len(sizes) == 1:
+    if sizes is None or len(sizes) == 1:
         s = None
     else:
         s = sizes[ind]
