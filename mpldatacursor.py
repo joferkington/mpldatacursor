@@ -28,7 +28,8 @@ import copy
 
 from matplotlib.contour import ContourSet
 from matplotlib.image import AxesImage
-from matplotlib.collections import PathCollection
+from matplotlib.collections import PathCollection, LineCollection
+from matplotlib.collections import PatchCollection
 from matplotlib.lines import Line2D
 
 def datacursor(artists=None, axes=None, **kwargs):
@@ -158,9 +159,22 @@ class DataCursor(object):
                 else:
                     output.append(item)
             return output
+
         if not cbook.iterable(artists):
             artists = [artists]
+
+        #-- Deal with contour sets... -------------------------------------
+        # These are particularly difficult, as the original z-value array
+        # is never associated with the ContourSet, and they're not "normal"
+        # artists (they're not actually added to the axes). Not only that, but
+        # the PatchCollections created by filled contours don't even fire a 
+        # pick event for points inside them, only on their edges. At any rate,
+        # this is a somewhat hackish way of handling contours, but it works.
         self.artists = filter_artists(artists)
+        self.contour_levels = {}
+        for cs in [x for x in artists if isinstance(x, ContourSet)]:
+            for z, artist in zip(cs.levels, cs.collections):
+                self.contour_levels[artist] = z
 
         valid_display_options = ['single', 'one-per-axes', 'multiple']
         if display in valid_display_options:
@@ -196,16 +210,23 @@ class DataCursor(object):
         def default_func(event):
             return {}
         registry = {
-                AxesImage : image_props,
-                PathCollection : scatter_props,
-                Line2D : line_props,
+                AxesImage : [image_props],
+                PathCollection : [scatter_props, self._contour_info],
+                Line2D : [line_props],
+                LineCollection : [self._contour_info],
+                PatchCollection : [self._contour_info],
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
         props['i'] = getattr(event, 'ind', None)
-        func = registry.get(type(event.artist), default_func)
-        props.update(func(event))
+        funcs = registry.get(type(event.artist), default_func)
+        for func in funcs:
+            props.update(func(event))
         return props
+    
+    def _contour_info(self, event):
+        """Get the z-value for a pick event on an artists in a contour set."""
+        return {'z':self.contour_levels.get(event.artist, None)}
 
     def _formatter(self, event=None, x=None, y=None, z=None, s=None, 
                    label=None, **kwargs):
@@ -470,8 +491,11 @@ def scatter_props(event):
     else:
         s = sizes[ind]
 
-    # Snap to the x, y of the point...
-    xorig, yorig = event.artist.get_offsets().T
-    x, y = xorig[ind], yorig[ind]
-
-    return dict(x=x, y=y, z=z, s=s, c=z)
+    try:
+        # Snap to the x, y of the point... (assuming it's created by scatter)
+        xorig, yorig = event.artist.get_offsets().T
+        x, y = xorig[ind], yorig[ind]
+        return dict(x=x, y=y, z=z, s=s, c=z)
+    except IndexError:
+        # Not created by scatter...
+        return dict(z=z, s=s, c=z)
