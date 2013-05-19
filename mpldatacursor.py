@@ -219,7 +219,7 @@ class DataCursor(object):
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
         props['i'] = getattr(event, 'ind', None)
-        funcs = registry.get(type(event.artist), default_func)
+        funcs = registry.get(type(event.artist), [default_func])
         for func in funcs:
             props.update(func(event))
         return props
