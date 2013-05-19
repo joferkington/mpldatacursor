@@ -68,6 +68,12 @@ def datacursor(artists=None, axes=None, **kwargs):
                     artist can be accessed through ``event.artist``).
                 label: string or None
                     The legend label of the selected artist.
+                ind: list of ints or None
+                    If the artist has "subitems" (e.g. points in a scatter or
+                    line plot), this will be a list of the item(s) that were
+                    clicked on.  If the artist does not have "subitems", this
+                    will be None. Note that this is always a list, even when
+                    a single item is selected.
             Some selected artists may supply additional keyword arguments that
             are not always present, for example:
                 z: number
@@ -138,8 +144,8 @@ class DataCursor(object):
             formatter: function, optional
                 A function that accepts arbitrary kwargs and returns a string
                 that will be displayed with annotate. The "x", "y", "event",
-                and "label" kwargs will always be present. See the "datacursor"
-                function docstring for more information.
+                "ind", and "label" kwargs will always be present. See the
+                "datacursor" function docstring for more information.
             display: string, optional
                 Controls whether more than one annotation box will be shown.
                 Valid values are "single", "one-per-axes", or "mutiple".
@@ -221,7 +227,7 @@ class DataCursor(object):
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
-        props['i'] = getattr(event, 'ind', None)
+        props['ind'] = getattr(event, 'ind', None)
         funcs = registry.get(type(event.artist), [default_func])
         for func in funcs:
             props.update(func(event))
