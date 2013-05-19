@@ -6,7 +6,10 @@ boxes) for matplotlib.
 Major Changes in v0.3
 ---------------------
 Version 0.3 adds basic support for displaying the "z" values of contours,
-``pcolor``, and ``pcolormesh`` as well as numerous bugfixes. 
+``pcolor``, and ``pcolormesh`` as well as numerous bugfixes. Additionally, the
+formatter function will now be passed a list of indicies (The ``ind`` kwarg) of
+the items selected if the artist has "subitems" (e.g. points in a scatter plot,
+etc). 
 
 
 Basic Usage
