@@ -3,6 +3,12 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+Major Changes in v0.3
+---------------------
+Version 0.3 adds basic support for displaying the "z" values of contours,
+``pcolor``, and ``pcolormesh`` as well as numerous bugfixes. 
+
+
 Basic Usage
 -----------
 ``mpldatacursor`` offers a few different styles of interaction through the 
