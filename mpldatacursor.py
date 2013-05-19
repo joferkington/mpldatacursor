@@ -29,7 +29,7 @@ import copy
 from matplotlib.contour import ContourSet
 from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection, LineCollection
-from matplotlib.collections import PatchCollection
+from matplotlib.collections import PatchCollection, PolyCollection, QuadMesh
 from matplotlib.lines import Line2D
 
 def datacursor(artists=None, axes=None, **kwargs):
@@ -211,10 +211,13 @@ class DataCursor(object):
             return {}
         registry = {
                 AxesImage : [image_props],
-                PathCollection : [scatter_props, self._contour_info],
+                PathCollection : [scatter_props, self._contour_info, 
+                                  collection_props],
                 Line2D : [line_props],
-                LineCollection : [self._contour_info],
-                PatchCollection : [self._contour_info],
+                LineCollection : [collection_props, self._contour_info],
+                PatchCollection : [collection_props, self._contour_info],
+                PolyCollection : [collection_props, scatter_props],
+                QuadMesh : [collection_props],
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
@@ -454,6 +457,16 @@ def line_props(event):
 
     return dict(x=x, y=y)
 
+def collection_props(event):
+    ind = event.ind[0]
+    arr = event.artist.get_array()
+    # If a constant color/c/z was specified, don't return it
+    if arr is None or len(arr) == 1:
+        z = None
+    else:
+        z = arr[ind]
+    return dict(z=z, c=z)
+
 def scatter_props(event):
     """
     Get information for a pick event on a PathCollection artist (usually 
@@ -477,15 +490,11 @@ def scatter_props(event):
     # Use only the first item, if multiple items were selected
     ind = event.ind[0]
 
-    arr = event.artist.get_array()
-    # If a constant color/c/z was specified, don't return it
-    if arr is None or len(arr) == 1:
-        z = None
-    else:
-        z = arr[ind]
-
+    try:
+        sizes = event.artist.get_sizes()
+    except AttributeError:
+        sizes = None
     # If a constant size/s was specified, don't return it
-    sizes = event.artist.get_sizes()
     if sizes is None or len(sizes) == 1:
         s = None
     else:
@@ -495,7 +504,7 @@ def scatter_props(event):
         # Snap to the x, y of the point... (assuming it's created by scatter)
         xorig, yorig = event.artist.get_offsets().T
         x, y = xorig[ind], yorig[ind]
-        return dict(x=x, y=y, z=z, s=s, c=z)
+        return dict(x=x, y=y, s=s)
     except IndexError:
         # Not created by scatter...
-        return dict(z=z, s=s, c=z)
+        return dict(s=s)
