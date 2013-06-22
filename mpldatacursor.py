@@ -343,7 +343,13 @@ class DataCursor(object):
     def enable(self):
         """Connects callbacks and makes artists pickable. If the datacursor has
         already been enabled, this function has no effect."""
-        connect = lambda fig: fig.canvas.mpl_connect('pick_event', self)
+        def connect(fig):
+            cid = fig.canvas.mpl_connect('pick_event', self)
+            # Shouldn't be necessary. Workaround for a bug in some mpl versions
+            proxy = fig.canvas.callbacks.BoundMethodProxy(self)
+            fig.canvas.callbacks.callbacks['pick_event'][cid] = proxy
+            return cid
+
         if not getattr(self, '_enabled', False):
             self._cids = [(fig, connect(fig)) for fig in self.figures]
             for artist in self.artists:
