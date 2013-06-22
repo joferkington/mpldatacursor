@@ -209,6 +209,7 @@ class DataCursor(object):
             raise ValueError('"display" must be one of the following: '\
                              ', '.join(valid_display_options))
 
+        self.tolerance = tolerance
         self.point_labels = point_labels
         self.draggable = draggable
         self.axes = tuple(set(art.axes for art in self.artists))
@@ -227,10 +228,8 @@ class DataCursor(object):
                 # Hide the annotation box until clicked...
                 self.annotations[ax].set_visible(False)
 
-        for artist in self.artists:
-            artist.set_picker(tolerance)
-        for fig in self.figures:
-            fig.canvas.mpl_connect('pick_event', self)
+        self.enabled = False
+        self.enable()
 
     def event_info(self, event):
         """Get a dict of info for the artist selected by "event"."""
@@ -319,6 +318,39 @@ class DataCursor(object):
             offsetbox.DraggableAnnotation(annotation)
 
         return annotation
+
+    def hide(self):
+        """Hides all annotation artists associated with the DataCursor. Returns
+        self to allow "chaining". (e.g. ``datacursor.hide().disable()``)"""
+        for artist in self.annotations.values():
+            artist.set_visible(False)
+        for fig in self.figures:
+            fig.canvas.draw()
+        return self
+
+    def disable(self):
+        """
+        Disconnects all callbacks and disables interactivity. Any existing
+        annotations will continue to be visible (and draggable, if applicable).
+        This has no effect if the datacursor has not been enabled. Returns self
+        to allow "chaining". (e.g. ``datacursor.hide().disable()``)
+        """
+        if self.enabled:
+            for fig, cid in self._cids:
+                fig.canvas.mpl_disconnect(cid)
+            self.enabled = False
+        return self
+
+    def enable(self):
+        """Connects callbacks and makes artists pickable. If the datacursor has
+        already been enabled, this function has no effect."""
+        connect = lambda fig: fig.canvas.mpl_connect('pick_event', self)
+        if not self.enabled:
+            self._cids = [(fig, connect(fig)) for fig in self.figures]
+            for artist in self.artists:
+                artist.set_picker(self.tolerance)
+            self.enabled = True
+        return self
 
     def update(self, event, annotation):
         """Update the specified annotation."""
