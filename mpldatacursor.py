@@ -228,7 +228,6 @@ class DataCursor(object):
                 # Hide the annotation box until clicked...
                 self.annotations[ax].set_visible(False)
 
-        self.enabled = False
         self.enable()
 
     def event_info(self, event):
@@ -335,22 +334,30 @@ class DataCursor(object):
         This has no effect if the datacursor has not been enabled. Returns self
         to allow "chaining". (e.g. ``datacursor.hide().disable()``)
         """
-        if self.enabled:
+        if self._enabled:
             for fig, cid in self._cids:
                 fig.canvas.mpl_disconnect(cid)
-            self.enabled = False
+            self._enabled = False
         return self
 
     def enable(self):
         """Connects callbacks and makes artists pickable. If the datacursor has
         already been enabled, this function has no effect."""
         connect = lambda fig: fig.canvas.mpl_connect('pick_event', self)
-        if not self.enabled:
+        if not getattr(self, '_enabled', False):
             self._cids = [(fig, connect(fig)) for fig in self.figures]
             for artist in self.artists:
                 artist.set_picker(self.tolerance)
-            self.enabled = True
+            self._enabled = True
         return self
+
+    def _set_enabled(self, value):
+        if value:
+            self.enable()
+        else:
+            self.disable()
+    enabled = property(lambda self: self._enabled, _set_enabled, 
+                    doc="The interactive state of the datacursor")
 
     def update(self, event, annotation):
         """Update the specified annotation."""
