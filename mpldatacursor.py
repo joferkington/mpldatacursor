@@ -55,7 +55,7 @@ def datacursor(artists=None, axes=None, **kwargs):
             all figures will be used.
         tolerance: number, optional
             The radius (in points) that the mouse click must be within to
-            select the artist.
+            select the artist. Default: 5 points.
         formatter: callable, optional
             A function that accepts arbitrary kwargs and returns a string
             that will be displayed with annotate. Often, it is convienent to
@@ -91,6 +91,20 @@ def datacursor(artists=None, axes=None, **kwargs):
                 c: number
                     The array value displayed as color for a ``PathCollection``
                     if a "c" array is specified (identical to "z").
+                point_label: list
+                    If ``point_labels`` is given when the data cursor is 
+                    initialized and the artist has "subitems", this will be a 
+                    list of the items of ``point_labels`` that correspond to 
+                    the selected artists.  Note that this is always a list, 
+                    even when a single artist is selected.
+        point_labels: sequence or dict, optional
+            For artists with "subitems" (e.g. Line2D's), the item(s) of 
+            ``point_labels`` corresponding to the selected "subitems" of the 
+            artist will be passed into the formatter function as the 
+            "point_label" kwarg. If a single sequence is given, it will be used
+            for all artists with "subitems". Alternatively, a dict of 
+            artist:sequence pairs may be given to match an artist to the correct
+            series of point labels.
         display: string, optional
             Controls whether more than one annotation box will be shown.
             Valid values are "single", "one-per-axes", or "mutiple".
@@ -131,7 +145,7 @@ class DataCursor(object):
                 bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
-    def __init__(self, artists, tolerance=5, formatter=None, 
+    def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                  display='one-per-axes', draggable=False, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
@@ -147,6 +161,11 @@ class DataCursor(object):
                 that will be displayed with annotate. The "x", "y", "event",
                 "ind", and "label" kwargs will always be present. See the
                 "datacursor" function docstring for more information.
+            point_labels: sequence or dict, optional
+                Labels for "subitems" of an artist, passed to the formatter
+                function as the ``point_label`` kwarg.  May be either a single
+                sequence (used for all artists) or a dict of artist:sequence 
+                pairs.
             display: string, optional
                 Controls whether more than one annotation box will be shown.
                 Valid values are "single", "one-per-axes", or "mutiple".
@@ -190,6 +209,7 @@ class DataCursor(object):
             raise ValueError('"display" must be one of the following: '\
                              ', '.join(valid_display_options))
 
+        self.point_labels = point_labels
         self.draggable = draggable
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
@@ -229,19 +249,31 @@ class DataCursor(object):
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
         props['ind'] = getattr(event, 'ind', None)
+        props['point_label'] = self._point_label(event)
+
         funcs = registry.get(type(event.artist), [default_func])
         for func in funcs:
             props.update(func(event))
         return props
-    
+
+    def _point_label(self, event):
+        ind = getattr(event, 'ind', None)
+        try:
+            return [self.point_labels[i] for i in ind]
+        except KeyError:
+            # Assume self.point_labels is a dict of artist, sequence
+            if event.artist in self.point_labels:
+                return [self.point_labels[event.artist][i] for i in ind]
+        except:
+            return None
+
     def _contour_info(self, event):
         """Get the z-value for a pick event on an artists in a contour set."""
         return {'z':self.contour_levels.get(event.artist, None)}
 
-    def _formatter(self, event=None, x=None, y=None, z=None, s=None, 
-                   label=None, **kwargs):
+    def _formatter(self, x=None, y=None, z=None, s=None, label=None, **kwargs):
         """
-        Default formatter function, if no `formatter` kwarg is specified.Takes
+        Default formatter function, if no `formatter` kwarg is specified. Takes
         information about the pick event as a series of kwargs and returns the
         string to be displayed.
         """
@@ -254,6 +286,9 @@ class DataCursor(object):
         # Un-labeled Line2D's will have labels that start with an underscore
         if label and not label.startswith('_'):
             output.append('Label: {}'.format(label))
+
+        if kwargs.get('point_label', None) is not None:
+            output.append('Point: '+', '.join(kwargs['point_label']))
 
         return '\n'.join(output)
 
