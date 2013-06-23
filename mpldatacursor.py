@@ -43,77 +43,80 @@ def datacursor(artists=None, axes=None, **kwargs):
     be interactively selectable.  Otherwise, all manually-plotted artists in 
     *axes* will be used (*axes* defaults to all axes in all figures).
 
-    Parameters:
+    Parameters
     -----------
-        artists: a matplotlib artist or sequence of artists, optional
-            The artists to make selectable and display information for. If this
-            is not specified, then all manually plotted artists in *axes* will
-            be used.
-        axes: a matplotlib axes of sequence of axes, optional
-            The axes to selected artists from if a sequence of artists is not
-            specified.  If *axes* is not specified, then all available axes in
-            all figures will be used.
-        tolerance: number, optional
-            The radius (in points) that the mouse click must be within to
-            select the artist. Default: 5 points.
-        formatter: callable, optional
-            A function that accepts arbitrary kwargs and returns a string
-            that will be displayed with annotate. Often, it is convienent to
-            pass in the format method of a template string, e.g. 
-            ``formatter="{label}".format``.
-            Keyword arguments passed in to the *formatter* function:
-                x, y: floats
-                    The x and y data coordinates of the clicked point
-                event: a matplotlib ``PickEvent``
-                    The pick event that was fired (note that the selected 
-                    artist can be accessed through ``event.artist``).
-                label: string or None
-                    The legend label of the selected artist.
-                ind: list of ints or None
-                    If the artist has "subitems" (e.g. points in a scatter or
-                    line plot), this will be a list of the item(s) that were
-                    clicked on.  If the artist does not have "subitems", this
-                    will be None. Note that this is always a list, even when
-                    a single item is selected.
-            Some selected artists may supply additional keyword arguments that
-            are not always present, for example:
-                z: number
-                    The "z" (usually color or array) value, if present. For an
-                    ``AxesImage`` (as created by ``imshow``), this will be the 
-                    uninterpolated array value at the point clicked. For a 
-                    ``PathCollection`` (as created by ``scatter``) this will be
-                    the "c" value if an array was passed to "c".
-                i, j: ints
-                    The row, column indicies of the selected point for an 
-                s: number
-                    The size of the selected item in a ``PathCollection`` if a
-                    size array is specified.
-                c: number
-                    The array value displayed as color for a ``PathCollection``
-                    if a "c" array is specified (identical to "z").
-                point_label: list
-                    If ``point_labels`` is given when the data cursor is 
-                    initialized and the artist has "subitems", this will be a 
-                    list of the items of ``point_labels`` that correspond to 
-                    the selected artists.  Note that this is always a list, 
-                    even when a single artist is selected.
-        point_labels: sequence or dict, optional
-            For artists with "subitems" (e.g. Line2D's), the item(s) of 
-            ``point_labels`` corresponding to the selected "subitems" of the 
-            artist will be passed into the formatter function as the 
-            "point_label" kwarg. If a single sequence is given, it will be used
-            for all artists with "subitems". Alternatively, a dict of 
-            artist:sequence pairs may be given to match an artist to the correct
-            series of point labels.
-        display: string, optional
-            Controls whether more than one annotation box will be shown.
-            Valid values are "single", "one-per-axes", or "mutiple".
-        draggable: boolean, optional
-            Controls whether or not the annotation box will be
-            interactively draggable to a new location after being
-            displayed. Defaults to False.
+    artists : a matplotlib artist or sequence of artists, optional
+        The artists to make selectable and display information for. If this is
+        not specified, then all manually plotted artists in `axes` will be
+        used.
+    axes : a matplotlib axes of sequence of axes, optional
+        The axes to selected artists from if a sequence of artists is not
+        specified.  If `axes` is not specified, then all available axes in all
+        figures will be used.
+    tolerance : number, optional
+        The radius (in points) that the mouse click must be within to select
+        the artist. Default: 5 points.
+    formatter : callable, optional
+        A function that accepts arbitrary kwargs and returns a string that will
+        be displayed with annotate. Often, it is convienent to pass in the
+        format method of a template string, e.g.
+        ``formatter="{label}".format``.
+        Keyword arguments passed in to the `formatter` function:
+            `x`, `y` : floats
+                The x and y data coordinates of the clicked point
+            `event` : a matplotlib ``PickEvent``
+                The pick event that was fired (note that the selected 
+                artist can be accessed through ``event.artist``).
+            `label` : string or None
+                The legend label of the selected artist.
+            `ind` : list of ints or None
+                If the artist has "subitems" (e.g. points in a scatter or
+                line plot), this will be a list of the item(s) that were
+                clicked on.  If the artist does not have "subitems", this
+                will be None. Note that this is always a list, even when
+                a single item is selected.
+        Some selected artists may supply additional keyword arguments that
+        are not always present, for example:
+            `z` : number
+                The "z" (usually color or array) value, if present. For an
+                ``AxesImage`` (as created by ``imshow``), this will be the
+                uninterpolated array value at the point clicked. For a
+                ``PathCollection`` (as created by ``scatter``) this will be the
+                "c" value if an array was passed to "c".
+            `i`, `j` : ints
+                The row, column indicies of the selected point for an
+                ``AxesImage`` (as created by ``imshow``) 
+            `s` : number
+                The size of the selected item in a ``PathCollection`` if a size
+                array is specified.
+            `c` : number
+                The array value displayed as color for a ``PathCollection``
+                if a "c" array is specified (identical to "z").
+            `point_label` : list
+                If `point_labels` is given when the data cursor is initialized
+                and the artist has "subitems", this will be a list of the items
+                of `point_labels` that correspond to the selected artists.
+                Note that this is always a list, even when a single artist is
+                selected.
+    point_labels : sequence or dict, optional
+        For artists with "subitems" (e.g. Line2D's), the item(s) of
+        `point_labels` corresponding to the selected "subitems" of the artist
+        will be passed into the formatter function as the "point_label" kwarg.
+        If a single sequence is given, it will be used for all artists with
+        "subitems". Alternatively, a dict of artist:sequence pairs may be given
+        to match an artist to the correct series of point labels.
+    display : {"one-per-axes", "single", "multiple"}, optional
+        Controls whether more than one annotation box will be shown. 
+        Default: "one-per-axes"
+    draggable : boolean, optional
+        Controls whether or not the annotation box will be interactively
+        draggable to a new location after being displayed. Defaults to False.
+    **kwargs : additional keyword arguments, optional
+        Additional keyword arguments are passed on to annotate.
 
-    Additional keyword arguments are passed on to annotate.
+    Returns
+    -------
+    dc : A ``mpldatacursor.DataCursor`` instance
     """
     def plotted_artists(ax):
         artists = ax.lines + ax.patches + ax.collections + ax.containers \
@@ -149,32 +152,30 @@ class DataCursor(object):
                  display='one-per-axes', draggable=False, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
-        Parameters:
+        Parameters
         -----------
-            artists: a matplotlib artist or sequence of artists.
-                The artists to make selectable and display information for.
-            tolerance: number, optional
-                The radius (in points) that the mouse click must be within to
-                select the artist.
-            formatter: function, optional
-                A function that accepts arbitrary kwargs and returns a string
-                that will be displayed with annotate. The "x", "y", "event",
-                "ind", and "label" kwargs will always be present. See the
-                "datacursor" function docstring for more information.
-            point_labels: sequence or dict, optional
-                Labels for "subitems" of an artist, passed to the formatter
-                function as the ``point_label`` kwarg.  May be either a single
-                sequence (used for all artists) or a dict of artist:sequence 
-                pairs.
-            display: string, optional
-                Controls whether more than one annotation box will be shown.
-                Valid values are "single", "one-per-axes", or "mutiple".
-            draggable: boolean, optional
-                Controls whether or not the annotation box will be
-                interactively draggable to a new location after being
-                displayed. Defaults to False.
-
-        Additional keyword arguments are passed on to annotate.
+        artists : a matplotlib artist or sequence of artists.
+            The artists to make selectable and display information for.
+        tolerance : number, optional
+            The radius (in points) that the mouse click must be within to
+            select the artist.
+        formatter : function, optional
+            A function that accepts arbitrary kwargs and returns a string that
+            will be displayed with annotate. The `x`, `y`, `event`, `ind`, and
+            `label` kwargs will always be present. See the
+            ``mpldatacursor.datacursor`` function docstring for more
+            information.
+        point_labels : sequence or dict, optional
+            Labels for "subitems" of an artist, passed to the formatter
+            function as the `point_label` kwarg.  May be either a single
+            sequence (used for all artists) or a dict of artist:sequence pairs.
+        display : {'one-per-axes', 'single', 'multiple'}, optional
+            Controls whether more than one annotation box will be shown.        
+        draggable : boolean, optional
+            Controls whether or not the annotation box will be interactively
+            draggable to a new location after being displayed. Default: False.
+        **kwargs : additional keyword arguments, optional
+            Additional keyword arguments are passed on to annotate.
         """
         def filter_artists(artists):
             """Replace ContourSets with their constituent artists."""
@@ -382,7 +383,7 @@ class DataCursor(object):
 
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
-        to be a callback connected to "pick_event".)"""
+        to be a callback connected to matplotlib's pick event.)"""
         # Ignore pick events for the annotation box itself (otherwise, 
         # draggable annotation boxes won't work) and pick events not for the
         # artists that this particular data cursor manages.
@@ -417,13 +418,12 @@ class HighlightingDataCursor(DataCursor):
         Arguments are identical to ``DataCursor`` except for the following
         keyword arguments:
 
-        Parameters:
-            artists: a matplotlib artist or sequence of artists.
-                The artists to make selectable and display information for.
-            highlight_color: a valid color specifier (string or tuple)
-                The color to set the highlighted artist to
-            highlight_width: 
-                The width of the highlighted artist
+        Parameters
+        ----------
+        highlight_color : a valid color specifier (string or tuple), optional
+            The color to set the highlighted artist to. Default: yellow
+        highlight_width : number, optional
+            The width of the highlighted artist. Default: 3
         """
         self.highlight_color = kwargs.pop('highlight_color', 'yellow')
         self.highlight_width = kwargs.pop('highlight_width', 3)
@@ -431,6 +431,7 @@ class HighlightingDataCursor(DataCursor):
         self.highlights = {}
 
     def update(self, event, annotation):
+        """Update the specified annotation."""
         # Decide whether or not to hide previous highlights...
         for artist in self.highlights.values():
             if self.display == 'multiple':
@@ -466,15 +467,15 @@ def _coords2index(im, x, y):
     """
     Converts data coordinates to index coordinates of the array.
 
-    Parameters:
+    Parameters
     -----------
-        im: A matplotlib image artist.
-        x: The x-coordinate in data coordinates.
-        y: The y-coordinate in data coordinates.
+    im : A matplotlib image artist.
+    x : The x-coordinate in data coordinates.
+    y : The y-coordinate in data coordinates.
 
-    Returns:
+    Returns
     --------
-        i, j: Index coordinates of the array associated with the image.
+    i, j : Index coordinates of the array associated with the image.
     """
     xmin, xmax, ymin, ymax = im.get_extent()
     if im.origin == 'upper':
@@ -491,15 +492,15 @@ def image_props(event):
     of "i" & "j" index values of the image for the point clicked, and "z": the
     (uninterpolated) value of the image at i,j.
     
-    Parameters:
+    Parameters
     -----------
-        event : PickEvent
-            The pick event to process
+    event : PickEvent
+        The pick event to process
 
-    Returns:
+    Returns
     --------
-        props : dict
-            A dict with keys: z, i, j
+    props : dict
+        A dict with keys: z, i, j
     """
     x, y = event.mouseevent.xdata, event.mouseevent.ydata
     i, j = _coords2index(event.artist, x, y)
@@ -515,15 +516,15 @@ def line_props(event):
     (instead of just being the position of the mouse) or snapped to the nearest
     vertex only the vertices are drawn.
  
-    Parameters:
+    Parameters
     -----------
-        event : PickEvent
-            The pick event to process
+    event : PickEvent
+        The pick event to process
 
-    Returns:
+    Returns
     --------
-        props : dict
-            A dict with keys: x & y
+    props : dict
+        A dict with keys: x & y
     """
     xclick, yclick = event.mouseevent.xdata, event.mouseevent.ydata
     i = event.ind[0]
@@ -559,20 +560,22 @@ def scatter_props(event):
     Get information for a pick event on a PathCollection artist (usually 
     created with ``scatter``). 
  
-    Parameters:
+    Parameters
     -----------
-        event : PickEvent
-            The pick event to process
+    event : PickEvent
+        The pick event to process
     
-    Returns:
+    Returns
     --------
-        A dict with keys: 
-            "c": The value of the color array at the point clicked.
-            "s": The value of the size array at the point clicked.
-            "z": Identical to "c". Specified for convenience (unified
-                 ``template`` kwargs to ``DataCursor``).
-        If constant values were specified to ``c`` or ``s`` when calling 
-        ``scatter``, "c" and/or "z" will be ``None``.
+    A dict with keys: 
+        `c`: The value of the color array at the point clicked.
+        `s`: The value of the size array at the point clicked.
+        `z`: Identical to `c`. Specified for convenience.
+
+    Notes
+    -----
+    If constant values were specified to ``c`` or ``s`` when calling 
+    ``scatter``, `c` and/or `z` will be ``None``.
     """
     # Use only the first item, if multiple items were selected
     ind = event.ind[0]
