@@ -484,11 +484,11 @@ def _coords2index(im, x, y):
     xmin, xmax, ymin, ymax = im.get_extent()
     if im.origin == 'upper':
         ymin, ymax = ymax, ymin
-    data_extent = mtransforms.Bbox([xmin, ymin, xmax, ymax])
+    data_extent = mtransforms.Bbox([ymin, xmin, ymax, xmax])
     array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape])
     trans = mtransforms.BboxTransformFrom(data_extent) +\
             mtransforms.BboxTransformTo(array_extent)
-    return trans.transform_point([x,y]).astype(int)
+    return trans.transform_point([y,x]).astype(int)
 
 def image_props(event):
     """
@@ -508,7 +508,7 @@ def image_props(event):
     """
     x, y = event.mouseevent.xdata, event.mouseevent.ydata
     i, j = _coords2index(event.artist, x, y)
-    z = event.artist.get_array()[j,i]
+    z = event.artist.get_array()[i,j]
     return dict(z=z, i=i, j=j)
 
 def line_props(event):
