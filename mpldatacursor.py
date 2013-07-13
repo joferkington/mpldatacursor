@@ -279,7 +279,11 @@ class DataCursor(object):
         output = []
         for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
             if val is not None:
-                output.append('{key}: {val:0.3g}'.format(key=key, val=val))
+                try:
+                    output.append('{key}: {val:0.3g}'.format(key=key, val=val))
+                except ValueError:
+                    # For masked arrays, etc, "z" value may be a string...
+                    output.append('{key}: {val}'.format(key=key, val=val))
 
         # label may be None or an empty string (for an un-labeled AxesImage)...
         # Un-labeled Line2D's will have labels that start with an underscore
