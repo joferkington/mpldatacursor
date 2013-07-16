@@ -485,7 +485,7 @@ def _coords2index(im, x, y):
     if im.origin == 'upper':
         ymin, ymax = ymax, ymin
     data_extent = mtransforms.Bbox([ymin, xmin, ymax, xmax])
-    array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape])
+    array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape[:2]])
     trans = mtransforms.BboxTransformFrom(data_extent) +\
             mtransforms.BboxTransformTo(array_extent)
     return trans.transform_point([y,x]).astype(int)
@@ -550,6 +550,9 @@ def line_props(event):
     return dict(x=x, y=y)
 
 def collection_props(event):
+    """
+    Get information for a pick event on an artist collection (e.g. 
+    LineCollection, PathCollection, PatchCollection, etc).  This will"""
     ind = event.ind[0]
     arr = event.artist.get_array()
     # If a constant color/c/z was specified, don't return it
