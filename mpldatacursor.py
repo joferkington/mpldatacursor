@@ -350,9 +350,17 @@ class DataCursor(object):
         already been enabled, this function has no effect."""
         def connect(fig):
             cid = fig.canvas.mpl_connect('pick_event', self)
-            # Shouldn't be necessary. Workaround for a bug in some mpl versions
-            proxy = fig.canvas.callbacks.BoundMethodProxy(self)
-            fig.canvas.callbacks.callbacks['pick_event'][cid] = proxy
+
+            # None of this should be necessary. Workaround for a bug in some 
+            # mpl versions
+            try:
+                proxy = fig.canvas.callbacks.BoundMethodProxy(self)
+                fig.canvas.callbacks.callbacks['pick_event'][cid] = proxy
+            except AttributeError:
+                # In some versions of mpl, BoundMethodProxy doesn't exist...
+                # See: https://github.com/joferkington/mpldatacursor/issues/2
+                pass
+
             return cid
 
         if not getattr(self, '_enabled', False):
