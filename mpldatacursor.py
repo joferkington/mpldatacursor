@@ -229,6 +229,20 @@ class DataCursor(object):
                 # Hide the annotation box until clicked...
                 self.annotations[ax].set_visible(False)
 
+        # Timer to control call-rate
+        def expire_func(ax, *args, **kwargs):
+            self.timer_expired[ax] = True
+            # Return True to keep callback
+            return True
+
+        self.timer_expired = {}
+        self.ax_timer = {}
+		
+        for ax in self.axes:
+            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval = 100, callbacks = [(expire_func, [ax], {})])
+            self.ax_timer[ax]._set_single_shot()
+            self.timer_expired[ax] = True
+            
         self.enable()
 
     def event_info(self, event):
@@ -402,7 +416,14 @@ class DataCursor(object):
         if event.artist not in self.artists:
             return
 
+
+        # Return if multiple events are firing 
         ax = event.artist.axes
+        if not self.timer_expired[ax]:
+            return
+        self.timer_expired[ax] = False
+        self.ax_timer[ax].start()
+        
         # Get the pre-created annotation box for the axes or create a new one.
         if self.display != 'multiple':
             annotation = self.annotations[ax]
