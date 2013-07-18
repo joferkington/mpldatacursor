@@ -509,6 +509,9 @@ def image_props(event):
     x, y = event.mouseevent.xdata, event.mouseevent.ydata
     i, j = _coords2index(event.artist, x, y)
     z = event.artist.get_array()[i,j]
+    if z.size > 1:
+        # Override default numpy formatting for this specific case. Bad idea?
+        z = ', '.join('{:0.3g}'.format(item) for item in z)
     return dict(z=z, i=i, j=j)
 
 def line_props(event):
