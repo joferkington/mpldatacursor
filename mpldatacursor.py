@@ -229,7 +229,7 @@ class DataCursor(object):
                 # Hide the annotation box until clicked...
                 self.annotations[ax].set_visible(False)
 
-        # Timer to control call-rate
+        # Timer to control call-rate. 
         def expire_func(ax, *args, **kwargs):
             self.timer_expired[ax] = True
             # Return True to keep callback
@@ -237,9 +237,9 @@ class DataCursor(object):
 
         self.timer_expired = {}
         self.ax_timer = {}
-		
         for ax in self.axes:
-            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval = 100, callbacks = [(expire_func, [ax], {})])
+            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=100, 
+                                        callbacks=[(expire_func, [ax], {})])
             self.ax_timer[ax]._set_single_shot()
             self.timer_expired[ax] = True
             
@@ -415,7 +415,6 @@ class DataCursor(object):
         # artists that this particular data cursor manages.
         if event.artist not in self.artists:
             return
-
 
         # Return if multiple events are firing 
         ax = event.artist.axes
