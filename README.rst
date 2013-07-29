@@ -3,6 +3,29 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+Major Changes in v0.4
+---------------------
+Version 0.4 adds:
+
+  * The ``point_labels`` kwarg.
+    For displaying a separate label for each sub-artist of "indexed" artists
+    (e.g. each point of a scatter plot). See:
+    ``examples/labeled_points_example.py``
+
+  * Hiding and disabling functionality.
+    The methods ``datacursor.enable``, ``datacursor.disable``, and
+    ``datacursor.hide`` now respectively enable and disable interactivity and
+    hide all visible datacursor "popups".
+
+  * Major bug-fixes for images.
+    Non-square images previously had the wrong values displayed in many cases.
+    Additionally, masked and non-scalar (e.g. R,G,B) images are now properly
+    supported.
+
+  * Rate-limit on re-drawing the figure.
+    This avoids the "animation effect" when multiple artists are selected. Many
+    thanks to Ehsan Azar for the implementation.
+
 Basic Usage
 -----------
 ``mpldatacursor`` offers a few different styles of interaction through the 
