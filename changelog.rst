@@ -1,5 +1,8 @@
-Current Git Head
-----------------
+Version 0.4
+-----------
+7/18/2013:
+        Ehsan Azar added rate-limit to avoid multiple calls and resulting
+        "animation effect" when multiple artists are selected. 
 
 7/15/2013: 
         Added support for displaying non-scalar z-values (e.g. R,G,B).  Kudos
