@@ -1,3 +1,9 @@
+Current Development Version
+---------------------------
+
+7/30/2013
+        Refactored mpldatacursor into multiple files.
+
 Version 0.4
 -----------
 7/18/2013

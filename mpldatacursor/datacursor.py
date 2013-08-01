@@ -19,12 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-__version__ = '0.4-dev'
-import numpy as np
 from matplotlib import cbook
 from matplotlib import offsetbox
-from matplotlib import _pylab_helpers as pylab_helpers
-import matplotlib.transforms as mtransforms
 import copy
 
 from matplotlib.contour import ContourSet
@@ -33,111 +29,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.collections import PatchCollection, PolyCollection, QuadMesh
 from matplotlib.lines import Line2D
 
-def datacursor(artists=None, axes=None, **kwargs):
-    """
-    Create an interactive data cursor for the specified artists or specified 
-    axes. The data cursor displays information about a selected artist in a
-    "popup" annotation box.
-
-    If a specific sequence of artists is given, only the specified artists will
-    be interactively selectable.  Otherwise, all manually-plotted artists in 
-    *axes* will be used (*axes* defaults to all axes in all figures).
-
-    Parameters
-    -----------
-    artists : a matplotlib artist or sequence of artists, optional
-        The artists to make selectable and display information for. If this is
-        not specified, then all manually plotted artists in `axes` will be
-        used.
-    axes : a matplotlib axes of sequence of axes, optional
-        The axes to selected artists from if a sequence of artists is not
-        specified.  If `axes` is not specified, then all available axes in all
-        figures will be used.
-    tolerance : number, optional
-        The radius (in points) that the mouse click must be within to select
-        the artist. Default: 5 points.
-    formatter : callable, optional
-        A function that accepts arbitrary kwargs and returns a string that will
-        be displayed with annotate. Often, it is convienent to pass in the
-        format method of a template string, e.g.
-        ``formatter="{label}".format``.
-        Keyword arguments passed in to the `formatter` function:
-            `x`, `y` : floats
-                The x and y data coordinates of the clicked point
-            `event` : a matplotlib ``PickEvent``
-                The pick event that was fired (note that the selected 
-                artist can be accessed through ``event.artist``).
-            `label` : string or None
-                The legend label of the selected artist.
-            `ind` : list of ints or None
-                If the artist has "subitems" (e.g. points in a scatter or
-                line plot), this will be a list of the item(s) that were
-                clicked on.  If the artist does not have "subitems", this
-                will be None. Note that this is always a list, even when
-                a single item is selected.
-        Some selected artists may supply additional keyword arguments that
-        are not always present, for example:
-            `z` : number
-                The "z" (usually color or array) value, if present. For an
-                ``AxesImage`` (as created by ``imshow``), this will be the
-                uninterpolated array value at the point clicked. For a
-                ``PathCollection`` (as created by ``scatter``) this will be the
-                "c" value if an array was passed to "c".
-            `i`, `j` : ints
-                The row, column indicies of the selected point for an
-                ``AxesImage`` (as created by ``imshow``) 
-            `s` : number
-                The size of the selected item in a ``PathCollection`` if a size
-                array is specified.
-            `c` : number
-                The array value displayed as color for a ``PathCollection``
-                if a "c" array is specified (identical to "z").
-            `point_label` : list
-                If `point_labels` is given when the data cursor is initialized
-                and the artist has "subitems", this will be a list of the items
-                of `point_labels` that correspond to the selected artists.
-                Note that this is always a list, even when a single artist is
-                selected.
-    point_labels : sequence or dict, optional
-        For artists with "subitems" (e.g. Line2D's), the item(s) of
-        `point_labels` corresponding to the selected "subitems" of the artist
-        will be passed into the formatter function as the "point_label" kwarg.
-        If a single sequence is given, it will be used for all artists with
-        "subitems". Alternatively, a dict of artist:sequence pairs may be given
-        to match an artist to the correct series of point labels.
-    display : {"one-per-axes", "single", "multiple"}, optional
-        Controls whether more than one annotation box will be shown. 
-        Default: "one-per-axes"
-    draggable : boolean, optional
-        Controls whether or not the annotation box will be interactively
-        draggable to a new location after being displayed. Defaults to False.
-    **kwargs : additional keyword arguments, optional
-        Additional keyword arguments are passed on to annotate.
-
-    Returns
-    -------
-    dc : A ``mpldatacursor.DataCursor`` instance
-    """
-    def plotted_artists(ax):
-        artists = ax.lines + ax.patches + ax.collections + ax.containers \
-                + ax.images
-        return artists
-
-    # If no axes are specified, get all axes.
-    if axes is None:
-        managers = pylab_helpers.Gcf.get_all_fig_managers()
-        figs = [manager.canvas.figure for manager in managers]
-        axes = [ax for fig in figs for ax in fig.axes]
-
-    if not cbook.iterable(axes):
-        axes = [axes]
-
-    # If no artists are specified, get all manually plotted artists in all of 
-    # the specified axes.
-    if artists is None:
-        artists = [artist for ax in axes for artist in plotted_artists(ax)]
-
-    return DataCursor(artists, **kwargs)
+import pick_info
 
 class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
@@ -250,14 +142,17 @@ class DataCursor(object):
         def default_func(event):
             return {}
         registry = {
-                AxesImage : [image_props],
-                PathCollection : [scatter_props, self._contour_info, 
-                                  collection_props],
-                Line2D : [line_props],
-                LineCollection : [collection_props, self._contour_info],
-                PatchCollection : [collection_props, self._contour_info],
-                PolyCollection : [collection_props, scatter_props],
-                QuadMesh : [collection_props],
+                AxesImage : [pick_info.image_props],
+                PathCollection : [pick_info.scatter_props, self._contour_info, 
+                                  pick_info.collection_props],
+                Line2D : [pick_info.line_props],
+                LineCollection : [pick_info.collection_props, 
+                                  self._contour_info],
+                PatchCollection : [pick_info.collection_props, 
+                                   self._contour_info],
+                PolyCollection : [pick_info.collection_props, 
+                                  pick_info.scatter_props],
+                QuadMesh : [pick_info.collection_props],
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
@@ -492,147 +387,3 @@ class HighlightingDataCursor(DataCursor):
                       picker=None)
         artist.axes.add_artist(highlight)
         return highlight
-
-#-- Artist-specific pick info functions --------------------------------------
-
-def _coords2index(im, x, y):
-    """
-    Converts data coordinates to index coordinates of the array.
-
-    Parameters
-    -----------
-    im : A matplotlib image artist.
-    x : The x-coordinate in data coordinates.
-    y : The y-coordinate in data coordinates.
-
-    Returns
-    --------
-    i, j : Index coordinates of the array associated with the image.
-    """
-    xmin, xmax, ymin, ymax = im.get_extent()
-    if im.origin == 'upper':
-        ymin, ymax = ymax, ymin
-    data_extent = mtransforms.Bbox([ymin, xmin, ymax, xmax])
-    array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape[:2]])
-    trans = mtransforms.BboxTransformFrom(data_extent) +\
-            mtransforms.BboxTransformTo(array_extent)
-    return trans.transform_point([y,x]).astype(int)
-
-def image_props(event):
-    """
-    Get information for a pick event on an ``AxesImage`` artist. Returns a dict
-    of "i" & "j" index values of the image for the point clicked, and "z": the
-    (uninterpolated) value of the image at i,j.
-    
-    Parameters
-    -----------
-    event : PickEvent
-        The pick event to process
-
-    Returns
-    --------
-    props : dict
-        A dict with keys: z, i, j
-    """
-    x, y = event.mouseevent.xdata, event.mouseevent.ydata
-    i, j = _coords2index(event.artist, x, y)
-    z = event.artist.get_array()[i,j]
-    if z.size > 1:
-        # Override default numpy formatting for this specific case. Bad idea?
-        z = ', '.join('{:0.3g}'.format(item) for item in z)
-    return dict(z=z, i=i, j=j)
-
-def line_props(event):
-    """
-    Get information for a pick event on a Line2D artist (as created with
-    ``plot``.)
-
-    This will yield x and y values that are interpolated between verticies 
-    (instead of just being the position of the mouse) or snapped to the nearest
-    vertex only the vertices are drawn.
- 
-    Parameters
-    -----------
-    event : PickEvent
-        The pick event to process
-
-    Returns
-    --------
-    props : dict
-        A dict with keys: x & y
-    """
-    xclick, yclick = event.mouseevent.xdata, event.mouseevent.ydata
-    i = event.ind[0]
-    xorig, yorig = event.artist.get_xydata().T
-
-    # For points-only lines, snap to the nearest point (or if we're at the last
-    # point, don't bother interpolating and do the same thing.)
-    if event.artist.get_linestyle() == 'none' or i == xorig.size - 1:
-        return dict(x=xorig[i], y=yorig[i])
-
-    # Interpolate between the indicies so that the x, y coords are precisely
-    # on the line instead of at the point clicked.
-    (x0, x1), (y0, y1) = xorig[[i, i+1]], yorig[[i, i+1]]
-    vec1 = np.array([x1 - x0, y1 - y0])
-    vec2 = np.array([xclick - x0, yclick - y0])
-    dist_along = vec1.dot(vec2)
-    x, y = np.array([x0, y0]) + dist_along * vec1
-
-    return dict(x=x, y=y)
-
-def collection_props(event):
-    """
-    Get information for a pick event on an artist collection (e.g. 
-    LineCollection, PathCollection, PatchCollection, etc).  This will"""
-    ind = event.ind[0]
-    arr = event.artist.get_array()
-    # If a constant color/c/z was specified, don't return it
-    if arr is None or len(arr) == 1:
-        z = None
-    else:
-        z = arr[ind]
-    return dict(z=z, c=z)
-
-def scatter_props(event):
-    """
-    Get information for a pick event on a PathCollection artist (usually 
-    created with ``scatter``). 
- 
-    Parameters
-    -----------
-    event : PickEvent
-        The pick event to process
-    
-    Returns
-    --------
-    A dict with keys: 
-        `c`: The value of the color array at the point clicked.
-        `s`: The value of the size array at the point clicked.
-        `z`: Identical to `c`. Specified for convenience.
-
-    Notes
-    -----
-    If constant values were specified to ``c`` or ``s`` when calling 
-    ``scatter``, `c` and/or `z` will be ``None``.
-    """
-    # Use only the first item, if multiple items were selected
-    ind = event.ind[0]
-
-    try:
-        sizes = event.artist.get_sizes()
-    except AttributeError:
-        sizes = None
-    # If a constant size/s was specified, don't return it
-    if sizes is None or len(sizes) == 1:
-        s = None
-    else:
-        s = sizes[ind]
-
-    try:
-        # Snap to the x, y of the point... (assuming it's created by scatter)
-        xorig, yorig = event.artist.get_offsets().T
-        x, y = xorig[ind], yorig[ind]
-        return dict(x=x, y=y, s=s)
-    except IndexError:
-        # Not created by scatter...
-        return dict(s=s)
