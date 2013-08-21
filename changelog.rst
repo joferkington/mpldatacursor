@@ -1,3 +1,9 @@
+Version 0.4.1
+-------------
+
+8/20/13
+        Backported a bugfix to allow compability with matplotlib-1.3.x.
+
 Version 0.4
 -----------
 
