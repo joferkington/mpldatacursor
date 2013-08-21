@@ -512,7 +512,7 @@ def _coords2index(im, x, y):
     xmin, xmax, ymin, ymax = im.get_extent()
     if im.origin == 'upper':
         ymin, ymax = ymax, ymin
-    data_extent = mtransforms.Bbox([ymin, xmin, ymax, xmax])
+    data_extent = mtransforms.Bbox([[ymin, xmin], [ymax, xmax]])
     array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape[:2]])
     trans = mtransforms.BboxTransformFrom(data_extent) +\
             mtransforms.BboxTransformTo(array_extent)
