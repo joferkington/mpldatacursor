@@ -103,6 +103,7 @@ def line_props(event):
     # on the line instead of at the point clicked.
     (x0, x1), (y0, y1) = xorig[[i, i+1]], yorig[[i, i+1]]
     vec1 = np.array([x1 - x0, y1 - y0])
+    vec1 /= np.linalg.norm(vec1)
     vec2 = np.array([xclick - x0, yclick - y0])
     dist_along = vec1.dot(vec2)
     x, y = np.array([x0, y0]) + dist_along * vec1
