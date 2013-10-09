@@ -1,6 +1,12 @@
 Current Development Version
 ---------------------------
 
+10/7/2013
+        Fixed bug in line interpolation. Kudos to dand-oss for the catch.
+
+8/20/2013
+        Bugfix for images with matplotlib 1.3.
+
 7/30/2013
         Refactored mpldatacursor into multiple files.
 
