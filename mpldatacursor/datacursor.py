@@ -132,7 +132,13 @@ class DataCursor(object):
         for ax in self.axes:
             self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=100, 
                                         callbacks=[(expire_func, [ax], {})])
-            self.ax_timer[ax]._set_single_shot()
+            try:
+                self.ax_timer[ax].single_shot = True
+            except AttributeError:
+                # For the wxAgg backend, setting the timer to be single_shot
+                # will raise an error that can be safely ignored.
+                # TODO: Send pull request to fix this to matplotlib
+                pass
             self.timer_expired[ax] = True
             
         self.enable()
