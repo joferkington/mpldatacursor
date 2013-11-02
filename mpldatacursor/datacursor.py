@@ -135,9 +135,8 @@ class DataCursor(object):
             try:
                 self.ax_timer[ax].single_shot = True
             except AttributeError:
-                # For the wxAgg backend, setting the timer to be single_shot
-                # will raise an error that can be safely ignored.
-                # TODO: Send pull request to fix this to matplotlib
+                # For mpl <= 1.3.1 with the wxAgg backend, setting the timer to
+                # be single_shot will raise an error that can be safely ignored.
                 pass
             self.timer_expired[ax] = True
             
