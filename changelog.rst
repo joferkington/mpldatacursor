@@ -1,6 +1,10 @@
 Current Development Version
 ---------------------------
 
+11/15/2013
+        Made x,y position of annotate snap to the displayed x,y values
+        Thanks to megies for the bug report and suggestion!
+
 10/7/2013
         Fixed bug in line interpolation. Kudos to dand-oss for the catch.
 
