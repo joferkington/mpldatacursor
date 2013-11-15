@@ -96,7 +96,8 @@ def line_props(event):
 
     # For points-only lines, snap to the nearest point (or if we're at the last
     # point, don't bother interpolating and do the same thing.)
-    if event.artist.get_linestyle() == 'none' or i == xorig.size - 1:
+    linestyle = event.artist.get_linestyle()
+    if linestyle in ['none', ' ', '', None, 'None'] or i == xorig.size - 1:
         return dict(x=xorig[i], y=yorig[i])
 
     # Interpolate between the indicies so that the x, y coords are precisely
