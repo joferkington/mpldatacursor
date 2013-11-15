@@ -294,13 +294,12 @@ class DataCursor(object):
 
     def update(self, event, annotation):
         """Update the specified annotation."""
-        # Rather than trying to interpolate, just display the clicked coords
-        # This will only be called if it's within "tolerance", anyway.
-        x, y = event.mouseevent.xdata, event.mouseevent.ydata
-        annotation.xy = x, y
+        # Get artist-specific information about the pick event
+        info = self.event_info(event)
 
-        # Update the text using the specified formatter function 
-        annotation.set_text(self.formatter(**self.event_info(event)))
+        # Update the xy position and text using the formatter function 
+        annotation.set_text(self.formatter(**info))
+        annotation.xy = info['x'], info['y']
 
         # In case it's been hidden earlier...
         annotation.set_visible(True)
