@@ -22,7 +22,7 @@ SOFTWARE.
 from matplotlib import _pylab_helpers as pylab_helpers
 from matplotlib import cbook
 
-from datacursor import DataCursor
+from .datacursor import DataCursor
 
 def datacursor(artists=None, axes=None, **kwargs):
     """

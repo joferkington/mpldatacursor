@@ -21,6 +21,6 @@ SOFTWARE.
 """
 __version__ = '0.4-dev'
 
-from convenience import datacursor
-from datacursor import DataCursor, HighlightingDataCursor
+from .convenience import datacursor
+from .datacursor import DataCursor, HighlightingDataCursor
 __all__ = ['datacursor', 'DataCursor', 'HighlightingDataCursor']
