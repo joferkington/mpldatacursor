@@ -1,6 +1,10 @@
 Current Development Version
 ---------------------------
 
+12/17/2013
+        Alessandro Impellizzeri switched things to use relative imports for
+        compatibility with python 3.x.
+
 11/15/2013
         Made x,y position of annotate snap to the displayed x,y values
         Thanks to megies for the bug report and suggestion!
