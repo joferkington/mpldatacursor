@@ -21,6 +21,7 @@ SOFTWARE.
 """
 __version__ = '0.4.1'
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import cbook
 from matplotlib import offsetbox
 from matplotlib import _pylab_helpers as pylab_helpers
@@ -240,7 +241,14 @@ class DataCursor(object):
         for ax in self.axes:
             self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=100, 
                                         callbacks=[(expire_func, [ax], {})])
-            self.ax_timer[ax]._set_single_shot()
+            try:
+                if plt.get_backend() != 'MacOSX':
+                    # Single-shot timers on the OSX backend segfault!
+                    self.ax_timer[ax].single_shot = True
+            except AttributeError:
+                # For mpl <= 1.3.1 with the wxAgg backend, setting the timer to
+                # be single_shot will raise an error that can be safely ignored.
+                pass
             self.timer_expired[ax] = True
             
         self.enable()
