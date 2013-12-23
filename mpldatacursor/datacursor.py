@@ -19,9 +19,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import copy
+import matplotlib.pyplot as plt
 from matplotlib import cbook
 from matplotlib import offsetbox
-import copy
 
 from matplotlib.contour import ContourSet
 from matplotlib.image import AxesImage
@@ -133,7 +134,9 @@ class DataCursor(object):
             self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=100, 
                                         callbacks=[(expire_func, [ax], {})])
             try:
-                self.ax_timer[ax].single_shot = True
+                if plt.get_backend() != 'MacOSX':
+                    # Single-shot timers on the OSX backend segfault!
+                    self.ax_timer[ax].single_shot = True
             except AttributeError:
                 # For mpl <= 1.3.1 with the wxAgg backend, setting the timer to
                 # be single_shot will raise an error that can be safely ignored.
