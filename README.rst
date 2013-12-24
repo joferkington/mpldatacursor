@@ -3,6 +3,11 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+v0.4.2
+------
+Version 0.4.2 adds a workaround for a bug in the OSX backend that would
+otherwise cause a segfault.
+
 v0.4.1
 ------
 Version 0.4.1 fixes a bug that prevented compatibility with matplotlib-1.3.

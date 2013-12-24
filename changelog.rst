@@ -1,3 +1,8 @@
+Version 0.4.2
+-------------
+12/23/2013
+        Backported a bugfix to workaround a segfault in the OSX backend.
+
 Version 0.4.1
 -------------
 
