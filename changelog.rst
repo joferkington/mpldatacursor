@@ -1,6 +1,9 @@
 Current Development Version
 ---------------------------
 
+12/22/2013
+        Added a workaround for a bug in the OSX backend that causes a segfault.
+
 12/17/2013
         Alessandro Impellizzeri switched things to use relative imports for
         compatibility with python 3.x.
