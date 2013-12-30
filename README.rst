@@ -137,7 +137,10 @@ Further Customization
 ---------------------
 Additional keyword arguments to ``datacursor`` are passed on to ``annotate``.
 This allows one to control the appearance and location of the "popup box",
-arrow, etc.  As a basic example::
+arrow, etc.  Note that properties passed in for the ``bbox`` and ``arrowprops``
+kwargs will be merged with the default style.  Therefore, specifying things
+like ``bbox=dict(alpha=1)`` will yield an opaque, yellow, rounded box, instead
+of matplotlib's default blue, square box. As a basic example::
 
         import matplotlib.pyplot as plt
         import numpy as np
@@ -155,9 +158,8 @@ arrow, etc.  As a basic example::
         dc1 = datacursor(left_artist, xytext=(15, -15), bbox=None)
 
         # Make the box have a white background with a fancier connecting arrow
-        dc2 = datacursor(right_artist, 
-                     arrowprops=dict(arrowstyle='simple', fc='white', alpha=0.5),
-                     bbox=dict(boxstyle='round,pad=0.3', fc='white', alpha=0.5))
+        dc2 = datacursor(right_artist, bbox=dict(fc='white'),
+                         arrowprops=dict(arrowstyle='simple', fc='white', alpha=0.5))
 
         plt.show()
 

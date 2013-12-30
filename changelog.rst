@@ -1,6 +1,12 @@
 Current Development Version
 ---------------------------
 
+12/29/2013
+        Made the ``bbox`` and ``arrowprops`` arguments use the mpldatacursor
+        defaults as a "base".  Therefore, specifying something like
+        ``bbox=dict(alpha=1)`` will result in a yellow, opaque box with rounded
+        corners instead of a blue, square box.
+
 12/22/2013
         Added a workaround for a bug in the OSX backend that causes a segfault.
 

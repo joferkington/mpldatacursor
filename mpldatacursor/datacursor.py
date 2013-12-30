@@ -217,6 +217,20 @@ class DataCursor(object):
         Draws the annotation box for the given axis *ax*. Additional kwargs
         are passed on to ``annotate``.
         """
+        def update_from_defaults(key, kwargs):
+            if kwargs.get(key, None) is not None:
+                new = copy.deepcopy(self.default_annotation_kwargs[key])
+                new.update(kwargs[key])
+                kwargs[key] = new 
+            return kwargs
+
+        # Ensure bbox and arrowstyle params passed in use the defaults for 
+        # DataCursor. This allows things like ``bbox=dict(alpha=1)`` to show a
+        # yellow, rounded box, instead of the mpl default blue, square box.)
+        kwargs = update_from_defaults('bbox', kwargs)
+        kwargs = update_from_defaults('arrowstyle', kwargs)
+
+        # Set defaults where approriate.
         for key in self.default_annotation_kwargs:
             if key not in kwargs:
                 kwargs[key] = self.default_annotation_kwargs[key]
