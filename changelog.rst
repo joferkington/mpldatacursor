@@ -1,6 +1,9 @@
 Current Development Version
 ---------------------------
 
+1/2/2014
+        Added basic support for allowing datacursors to pop up on hover.
+
 12/29/2013
         Made the ``bbox`` and ``arrowprops`` arguments use the mpldatacursor
         defaults as a "base".  Therefore, specifying something like

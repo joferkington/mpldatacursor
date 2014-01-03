@@ -102,6 +102,10 @@ def datacursor(artists=None, axes=None, **kwargs):
     draggable : boolean, optional
         Controls whether or not the annotation box will be interactively
         draggable to a new location after being displayed. Defaults to False.
+    hover : boolean, optional
+        If True, the datacursor will "pop up" when the mouse hovers over an
+        artist.  Defaults to False.  Enabling hover also sets
+        `display="single"` and `draggable=False`.
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 

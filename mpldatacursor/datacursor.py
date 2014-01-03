@@ -42,7 +42,7 @@ class DataCursor(object):
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                 display='one-per-axes', draggable=False, **kwargs):
+                display='one-per-axes', draggable=False, hover=False, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -67,6 +67,10 @@ class DataCursor(object):
         draggable : boolean, optional
             Controls whether or not the annotation box will be interactively
             draggable to a new location after being displayed. Default: False.
+        hover : boolean, optional
+            If True, the datacursor will "pop up" when the mouse hovers over an
+            artist.  Defaults to False.  Enabling hover also sets 
+            `display="single"` and `draggable=False`.
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -102,6 +106,10 @@ class DataCursor(object):
         else:
             raise ValueError('"display" must be one of the following: '\
                              ', '.join(valid_display_options))
+        self.hover = hover
+        if self.hover:
+            self.display = 'single'
+            self.draggable = False
 
         self.tolerance = tolerance
         self.point_labels = point_labels
@@ -131,15 +139,17 @@ class DataCursor(object):
         self.timer_expired = {}
         self.ax_timer = {}
         for ax in self.axes:
-            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=100, 
+            interval = 300 if self.hover else 100
+            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=interval, 
                                         callbacks=[(expire_func, [ax], {})])
             try:
                 if plt.get_backend() != 'MacOSX':
                     # Single-shot timers on the OSX backend segfault!
                     self.ax_timer[ax].single_shot = True
             except AttributeError:
-                # For mpl <= 1.3.1 with the wxAgg backend, setting the timer to
-                # be single_shot will raise an error that can be safely ignored.
+                # For mpl <= 1.3.1 with the wxAgg backend, setting the
+                # timer to be single_shot will raise an error that can be
+                # safely ignored.
                 pass
             self.timer_expired[ax] = True
             
@@ -271,8 +281,9 @@ class DataCursor(object):
         to allow "chaining". (e.g. ``datacursor.hide().disable()``)
         """
         if self._enabled:
-            for fig, cid in self._cids:
-                fig.canvas.mpl_disconnect(cid)
+            for fig, cids in self._cids:
+                for cid in cids:
+                    fig.canvas.mpl_disconnect(cid)
             self._enabled = False
         return self
 
@@ -280,19 +291,21 @@ class DataCursor(object):
         """Connects callbacks and makes artists pickable. If the datacursor has
         already been enabled, this function has no effect."""
         def connect(fig):
-            cid = fig.canvas.mpl_connect('pick_event', self)
+            cids = [fig.canvas.mpl_connect('pick_event', self)]
+            if self.hover:
+                c = fig.canvas.mpl_connect('motion_notify_event', self._on_hover)
+                cids.append(c)
 
             # None of this should be necessary. Workaround for a bug in some 
             # mpl versions
             try:
                 proxy = fig.canvas.callbacks.BoundMethodProxy(self)
-                fig.canvas.callbacks.callbacks['pick_event'][cid] = proxy
+                fig.canvas.callbacks.callbacks['pick_event'][cids[0]] = proxy
             except AttributeError:
                 # In some versions of mpl, BoundMethodProxy doesn't exist...
                 # See: https://github.com/joferkington/mpldatacursor/issues/2
                 pass
-
-            return cid
+            return cids
 
         if not getattr(self, '_enabled', False):
             self._cids = [(fig, connect(fig)) for fig in self.figures]
@@ -323,9 +336,19 @@ class DataCursor(object):
 
         event.canvas.draw()
 
+    def _on_hover(self, event):
+        for artist in self.artists:
+            artist.pick(event)
+        if any(self.timer_expired.values()):
+            # Not hovering over anything...
+            if any(item.get_visible() for item in self.annotations.values()):
+                self.hide()
+
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to matplotlib's pick event.)"""
+        ax = event.artist.axes
+
         # Ignore pick events for the annotation box itself (otherwise, 
         # draggable annotation boxes won't work) and pick events not for the
         # artists that this particular data cursor manages.
@@ -333,9 +356,9 @@ class DataCursor(object):
             return
 
         # Return if multiple events are firing 
-        ax = event.artist.axes
         if not self.timer_expired[ax]:
-            return
+            if not self.hover:
+                return
         self.timer_expired[ax] = False
         self.ax_timer[ax].start()
         
