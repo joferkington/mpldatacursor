@@ -44,9 +44,11 @@ class DataCursor(object):
                 bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
+    default_keybindings = dict(hide='d', toggle='t')
+
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                 display='one-per-axes', draggable=False, hover=False, 
-                props_override=None, **kwargs):
+                props_override=None, keybindings=True, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -84,6 +86,13 @@ class DataCursor(object):
             `formatter` function and is expected to return a dict with at least
             the keys "x" and "y" (and probably several others).
             Expected call signature: `props_dict = props_override(**kwargs)`
+        keybindings : boolean or dict, optional
+            By default, the keys "d" and "t" will be bound to deleting/hiding
+            all annotation boxes and toggling interactivity for datacursors,
+            respectively.  If keybindings is False, the ability to hide/toggle
+            datacursors interactively will be disabled. Alternatively, a dict
+            of the form {'hide':'somekey', 'toggle':'somekey'} may specified to
+            customize the keyboard shortcuts.
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -169,6 +178,14 @@ class DataCursor(object):
                 pass
             self.timer_expired[ax] = True
             
+        if keybindings:
+            if keybindings is True:
+                self.keybindings = self.default_keybindings
+            else:
+                self.keybindings = keybindings
+            for fig in self.figures:
+                fig.canvas.mpl_connect('key_press_event', self._on_keypress)
+
         self.enable()
 
     def event_info(self, event):
@@ -361,6 +378,12 @@ class DataCursor(object):
         annotation.set_visible(True)
 
         event.canvas.draw()
+
+    def _on_keypress(self, event):
+        if event.key == self.keybindings['hide']:
+            self.hide()
+        if event.key == self.keybindings['toggle']:
+            self.enabled = not self.enabled
 
     def _on_hover(self, event):
         for artist in self.artists:

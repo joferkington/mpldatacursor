@@ -117,6 +117,13 @@ def datacursor(artists=None, axes=None, **kwargs):
         function and is expected to return a dict with at least the keys "x"
         and "y" (and probably several others).  
         Expected call signature: `props_dict = props_override(**kwargs)`
+    keybindings : boolean or dict, optional
+        By default, the keys "d" and "t" will be bound to deleting/hiding all
+        annotation boxes and toggling interactivity for datacursors,
+        respectively.  If keybindings is False, the ability to hide/toggle
+        datacursors interactively will be disabled. Alternatively, a dict of
+        the form {'hide':'somekey', 'toggle':'somekey'} may specified to
+        customize the keyboard shortcuts.
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 
