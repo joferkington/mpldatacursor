@@ -3,6 +3,19 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+Major Changes in v0.5
+---------------------
+Version 0.5 adds:
+
+  * The ``hover`` option to allow annotation boxes to popup "on hover".
+
+  * The ``props_override`` option to customize the x,y location where the popup
+    is displayed as well as parameters passed in to the ``formatter`` function.
+
+  * Refactoring of ``mpldatacursor`` into multiple files.
+
+  * Numerous bugfixes (Thanks to everyone for the multiple bug reports, pull requests, etc!)
+
 Basic Usage
 -----------
 ``mpldatacursor`` offers a few different styles of interaction through the 

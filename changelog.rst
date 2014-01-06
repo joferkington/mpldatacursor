@@ -1,5 +1,5 @@
-Current Development Version
----------------------------
+Version 0.5
+-----------
 
 1/5/2014
         Added the ``props_override`` option to customize the x,y location where
