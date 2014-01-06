@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import copy
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cbook
 from matplotlib import offsetbox
@@ -36,8 +37,8 @@ class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
 
-    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15), ha='right',  
-                textcoords='offset points', va='bottom',
+    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15), 
+                textcoords='offset points', 
                 bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
@@ -234,6 +235,9 @@ class DataCursor(object):
                 kwargs[key] = new 
             return kwargs
 
+        user_set_ha = 'ha' in kwargs or 'horizontalalignment' in kwargs
+        user_set_va = 'va' in kwargs or 'verticalalignment' in kwargs
+
         # Ensure bbox and arrowstyle params passed in use the defaults for 
         # DataCursor. This allows things like ``bbox=dict(alpha=1)`` to show a
         # yellow, rounded box, instead of the mpl default blue, square box.)
@@ -248,9 +252,12 @@ class DataCursor(object):
         # Make text alignment match the specified offsets (this allows easier
         # changing of relative position of text box...)
         dx, dy = kwargs['xytext']
-        horizontal = 'left' if dx > 0 else 'right'
-        vertical = 'bottom' if dy > 0 else 'top'
-        kwargs['ha'], kwargs['va'] = horizontal, vertical
+        horizontal = {1:'left', 0:'center', -1:'right'}[np.sign(dx)]
+        vertical = {1:'bottom', 0:'center', -1:'top'}[np.sign(dy)]
+        if not user_set_ha:
+            kwargs['ha'] = horizontal
+        if not user_set_va:
+            kwargs['va'] = vertical
 
         annotation = ax.annotate('This text will be reset', **kwargs)
 
