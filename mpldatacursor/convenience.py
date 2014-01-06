@@ -108,6 +108,15 @@ def datacursor(artists=None, axes=None, **kwargs):
         If True, the datacursor will "pop up" when the mouse hovers over an
         artist.  Defaults to False.  Enabling hover also sets
         `display="single"` and `draggable=False`.
+    props_override : function, optional
+        If specified, this function customizes the parameters passed into the
+        formatter function and the x, y location that the datacursor "pop up"
+        "points" to.  This is often useful to make the annotation "point" to a
+        specific side or corner of an artist, regardless of the position
+        clicked. The function is passed the same kwargs as the `formatter`
+        function and is expected to return a dict with at least the keys "x"
+        and "y" (and probably several others).  
+        Expected call signature: `props_dict = props_override(**kwargs)`
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 

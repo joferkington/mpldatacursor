@@ -45,7 +45,8 @@ class DataCursor(object):
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                display='one-per-axes', draggable=False, hover=False, **kwargs):
+                display='one-per-axes', draggable=False, hover=False, 
+                props_override=None, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -74,6 +75,15 @@ class DataCursor(object):
             If True, the datacursor will "pop up" when the mouse hovers over an
             artist.  Defaults to False.  Enabling hover also sets 
             `display="single"` and `draggable=False`.
+        props_override : function, optional
+            If specified, this function customizes the parameters passed into
+            the formatter function and the x, y location that the datacursor
+            "pop up" "points" to.  This is often useful to make the annotation
+            "point" to a specific side or corner of an artist, regardless of
+            the position clicked. The function is passed the same kwargs as the
+            `formatter` function and is expected to return a dict with at least
+            the keys "x" and "y" (and probably several others).
+            Expected call signature: `props_dict = props_override(**kwargs)`
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -119,6 +129,7 @@ class DataCursor(object):
         self.tolerance = tolerance
         self.point_labels = point_labels
         self.draggable = draggable
+        self.props_override = props_override
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
 
@@ -338,6 +349,9 @@ class DataCursor(object):
         """Update the specified annotation."""
         # Get artist-specific information about the pick event
         info = self.event_info(event)
+
+        if self.props_override is not None:
+            info = self.props_override(**info)
 
         # Update the xy position and text using the formatter function 
         annotation.set_text(self.formatter(**info))

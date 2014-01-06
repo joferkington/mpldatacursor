@@ -2,6 +2,11 @@ Current Development Version
 ---------------------------
 
 1/5/2014
+        Added the ``props_override`` option to customize the x,y location where
+        the popup is displayed without subclassing or monkey-patching
+        mpldatacursor.
+
+1/5/2014
         Fixed bug with bar plots and made width, height, etc be passed in to
         the formatter function for Rectangle artists.
 
