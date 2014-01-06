@@ -167,3 +167,9 @@ def scatter_props(event):
     except IndexError:
         # Not created by scatter...
         return dict(s=s)
+
+def rectangle_props(event):
+    artist = event.artist
+    width, height = artist.get_width(), artist.get_height()
+    left, bottom = artist.xy
+    return dict(width=width, height=height, left=left, bottom=bottom)

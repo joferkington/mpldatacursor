@@ -1,6 +1,10 @@
 Current Development Version
 ---------------------------
 
+1/5/2014
+        Fixed bug with bar plots and made width, height, etc be passed in to
+        the formatter function for Rectangle artists.
+
 1/2/2014
         Added basic support for allowing datacursors to pop up on hover.
 

@@ -89,6 +89,8 @@ def datacursor(artists=None, axes=None, **kwargs):
                 of `point_labels` that correspond to the selected artists.
                 Note that this is always a list, even when a single artist is
                 selected.
+            `width`, `height`, `top`, `bottom` : numbers
+                The parameters for ``Rectangle`` artists (e.g. bar plots).
     point_labels : sequence or dict, optional
         For artists with "subitems" (e.g. Line2D's), the item(s) of
         `point_labels` corresponding to the selected "subitems" of the artist
@@ -114,8 +116,7 @@ def datacursor(artists=None, axes=None, **kwargs):
     dc : A ``mpldatacursor.DataCursor`` instance
     """
     def plotted_artists(ax):
-        artists = ax.lines + ax.patches + ax.collections + ax.containers \
-                + ax.images
+        artists = ax.lines + ax.patches + ax.collections + ax.images
         return artists
 
     # If no axes are specified, get all axes.

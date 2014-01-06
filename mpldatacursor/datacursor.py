@@ -29,7 +29,9 @@ from matplotlib.contour import ContourSet
 from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.collections import PatchCollection, PolyCollection, QuadMesh
+from matplotlib.container import Container
 from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 
 from . import pick_info
 
@@ -76,11 +78,13 @@ class DataCursor(object):
             Additional keyword arguments are passed on to annotate.
         """
         def filter_artists(artists):
-            """Replace ContourSets with their constituent artists."""
+            """Replace ContourSets, etc with their constituent artists."""
             output = []
             for item in artists:
                 if isinstance(item, ContourSet):
                     output += item.collections
+                elif isinstance(item, Container):
+                    output += item.get_children()
                 else:
                     output.append(item)
             return output
@@ -172,6 +176,7 @@ class DataCursor(object):
                 PolyCollection : [pick_info.collection_props, 
                                   pick_info.scatter_props],
                 QuadMesh : [pick_info.collection_props],
+                Rectangle : [pick_info.rectangle_props],
                 }
         x, y = event.mouseevent.xdata, event.mouseevent.ydata
         props = dict(x=x, y=y, label=event.artist.get_label(), event=event)
