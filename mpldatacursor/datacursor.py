@@ -103,7 +103,10 @@ class DataCursor(object):
                 if isinstance(item, ContourSet):
                     output += item.collections
                 elif isinstance(item, Container):
-                    output += item.get_children()
+                    children = item.get_children()
+                    for child in children:
+                        child._mpldatacursor_label = item.get_label()
+                    output += children
                 else:
                     output.append(item)
             return output

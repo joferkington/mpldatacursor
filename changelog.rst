@@ -1,6 +1,10 @@
 Current Development Version
 ---------------------------
 
+2/11/2014
+        Fixed bug with bar plots not displaying legend labels. Kudos to 
+        Nils Wagner for the catch.
+
 Version 0.5
 -----------
 

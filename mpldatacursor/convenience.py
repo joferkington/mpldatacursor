@@ -132,7 +132,8 @@ def datacursor(artists=None, axes=None, **kwargs):
     dc : A ``mpldatacursor.DataCursor`` instance
     """
     def plotted_artists(ax):
-        artists = ax.lines + ax.patches + ax.collections + ax.images
+        artists = (ax.lines + ax.patches + ax.collections 
+                   + ax.images + ax.containers)
         return artists
 
     # If no axes are specified, get all axes.
