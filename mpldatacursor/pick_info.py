@@ -71,7 +71,7 @@ def image_props(event):
         z = ', '.join('{:0.3g}'.format(item) for item in z)
     return dict(z=z, i=i, j=j)
 
-def line_props(event):
+def line_props_interpolated(event):
     """
     Get information for a pick event on a Line2D artist (as created with
     ``plot``.)
@@ -110,6 +110,31 @@ def line_props(event):
     x, y = np.array([x0, y0]) + dist_along * vec1
 
     return dict(x=x, y=y)
+    
+def line_props(event):
+    """
+    Get information for a pick event on a Line2D artist (as created with
+    ``plot``.)
+
+    This will yield x and y values on the nearest pick position of the mouse
+
+ 
+    Parameters
+    -----------
+    event : PickEvent
+        The pick event to process
+
+    Returns
+    --------
+    props : dict
+        A dict with keys: x & y
+    """
+    xclick, yclick = event.mouseevent.xdata, event.mouseevent.ydata
+    i = event.ind[0]
+    xorig, yorig = event.artist.get_xydata().T
+
+
+    return dict(x=xorig[i], y=yorig[i])
 
 def collection_props(event):
     """
