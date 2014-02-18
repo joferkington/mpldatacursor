@@ -41,7 +41,7 @@ class DataCursor(object):
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                 display='one-per-axes', draggable=False, **kwargs):
+                 display='one-per-axes', draggable=False,interpolate_pickpos=True, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -66,9 +66,20 @@ class DataCursor(object):
         draggable : boolean, optional
             Controls whether or not the annotation box will be interactively
             draggable to a new location after being displayed. Default: False.
+        interpolate_pickpos: boolean defines what kind of line pick function to use.
+            If set to true the interpolated version will be used.
+            If false the nearest point to the left will be picked.            
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
+        #define which kind of line_props to use. 
+        #line_props <- easy version
+        #line_props_interpolated <- interpolated version
+        if (interpolate_pickpos):
+            self.line_props = pick_info.line_props_interpolated
+        else:
+            self.line_props = pick_info.line_props
+                    
         def filter_artists(artists):
             """Replace ContourSets with their constituent artists."""
             output = []
@@ -150,7 +161,7 @@ class DataCursor(object):
                 AxesImage : [pick_info.image_props],
                 PathCollection : [pick_info.scatter_props, self._contour_info, 
                                   pick_info.collection_props],
-                Line2D : [pick_info.line_props],
+                Line2D : [self.line_props],
                 LineCollection : [pick_info.collection_props, 
                                   self._contour_info],
                 PatchCollection : [pick_info.collection_props, 
