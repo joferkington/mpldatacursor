@@ -29,7 +29,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.collections import PatchCollection, PolyCollection, QuadMesh
 from matplotlib.lines import Line2D
 
-import pick_info
+from . import pick_info
 
 class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
