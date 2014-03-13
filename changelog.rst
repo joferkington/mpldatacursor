@@ -4,6 +4,11 @@ Current Development Version
 Version 0.5
 -----------
 
+3/12/2014
+        Made datacursor auto-detect if the x or y axes are set to display dates
+        and format the coordinate as a date if so. Also added the "date_format"
+        kwarg to control the date formatting.
+
 1/5/2014
         Enabled keyboard shortcuts by default. "d" hides/deletes visible
         annotation boxes, while "t" toggles interactivity.

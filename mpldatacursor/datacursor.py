@@ -32,6 +32,7 @@ from matplotlib.collections import PatchCollection, PolyCollection, QuadMesh
 from matplotlib.container import Container
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+import matplotlib.dates as mdates
 
 from . import pick_info
 
@@ -48,7 +49,8 @@ class DataCursor(object):
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                 display='one-per-axes', draggable=False, hover=False, 
-                props_override=None, keybindings=True, **kwargs):
+                props_override=None, keybindings=True, date_format='%x %X', 
+                **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -93,6 +95,9 @@ class DataCursor(object):
             datacursors interactively will be disabled. Alternatively, a dict
             of the form {'hide':'somekey', 'toggle':'somekey'} may specified to
             customize the keyboard shortcuts.
+        date_format : string, optional
+            The strftime-style formatting string for dates. Used only if the x
+            or y axes have been set to display dates. Defaults to "%x %X".
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -237,6 +242,18 @@ class DataCursor(object):
         information about the pick event as a series of kwargs and returns the
         string to be displayed.
         """
+        def is_date(axis):
+            fmt = axis.get_major_formatter()
+            return (isinstance(fmt, mdates.DateFormatter) 
+                 or isinstance(fmt, mdates.AutoDateFormatter))
+        def format_date(num):
+            return mdates.num2date(num).strftime(self.date_format)
+        ax = kwargs['event'].mouseevent.inaxes
+        if is_date(ax.xaxis):
+            x = format_date(x)
+        if is_date(ax.yaxis):
+            y = format_date(y)
+
         output = []
         for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
             if val is not None:
@@ -244,6 +261,7 @@ class DataCursor(object):
                     output.append('{key}: {val:0.3g}'.format(key=key, val=val))
                 except ValueError:
                     # For masked arrays, etc, "z" value may be a string...
+                    # Similarly, x or y will be strings if they are dates.
                     output.append('{key}: {val}'.format(key=key, val=val))
 
         # label may be None or an empty string (for an un-labeled AxesImage)...

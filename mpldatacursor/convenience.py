@@ -124,6 +124,9 @@ def datacursor(artists=None, axes=None, **kwargs):
         datacursors interactively will be disabled. Alternatively, a dict of
         the form {'hide':'somekey', 'toggle':'somekey'} may specified to
         customize the keyboard shortcuts.
+    date_format : string, optional
+        The strftime-style formatting string for dates. Used only if the x or y
+        axes have been set to display dates. Defaults to "%x %X".
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 
