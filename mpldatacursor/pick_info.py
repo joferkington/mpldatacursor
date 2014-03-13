@@ -172,4 +172,6 @@ def rectangle_props(event):
     artist = event.artist
     width, height = artist.get_width(), artist.get_height()
     left, bottom = artist.xy
-    return dict(width=width, height=height, left=left, bottom=bottom)
+    label = artist._mpldatacursor_label
+    return dict(width=width, height=height, left=left, bottom=bottom,
+                label=label)
