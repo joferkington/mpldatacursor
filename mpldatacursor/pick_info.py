@@ -172,6 +172,9 @@ def rectangle_props(event):
     artist = event.artist
     width, height = artist.get_width(), artist.get_height()
     left, bottom = artist.xy
-    label = artist._mpldatacursor_label
+    try:
+        label = artist._mpldatacursor_label
+    except AttributeError:
+        label = None
     return dict(width=width, height=height, left=left, bottom=bottom,
                 label=label)
