@@ -146,6 +146,7 @@ class DataCursor(object):
         self.tolerance = tolerance
         self.point_labels = point_labels
         self.draggable = draggable
+        self.date_format = date_format
         self.props_override = props_override
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
