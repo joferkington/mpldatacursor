@@ -50,7 +50,8 @@ class DataCursor(object):
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                 display='one-per-axes', draggable=False, hover=False, 
                 props_override=None, keybindings=True, date_format='%x %X', 
-		ignore_buttons=(), **kwargs):
+		display_button=1, hide_button=3,
+                **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -98,10 +99,14 @@ class DataCursor(object):
         date_format : string, optional
             The strftime-style formatting string for dates. Used only if the x
             or y axes have been set to display dates. Defaults to "%x %X".
-	ignore_buttons: tuple, optional
-	    Disable catching pick events for the listed mouse buttons,
-	    eg: ignore_buttons = (2, 3) turns off data cursors for middle and
-	    right clicks.
+        display_button: int, optional
+            The mouse button that will triggers displaying an annotation box.
+            Defaults to 1, for left-clicking. (Common options are
+            1:left-click, 2:middle-click, 3:right-click)
+        hide_button: int or None, optional
+            The mouse button that triggers hiding the selected annotation box.
+            Defaults to 3, for right-clicking. (Common options are
+            1:left-click, 2:middle-click, 3:right-click, None:hiding disabled)
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -152,7 +157,8 @@ class DataCursor(object):
         self.draggable = draggable
         self.date_format = date_format
         self.props_override = props_override
-	self.ignore_buttons = frozenset(ignore_buttons)
+        self.display_button = display_button
+        self.hide_button = hide_button 
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
 
@@ -339,6 +345,11 @@ class DataCursor(object):
         for fig in self.figures:
             fig.canvas.draw()
         return self
+    
+    def _hide_box(self, annotation):
+        """Hide a specific annotation box."""
+        annotation.set_visible(False)
+        annotation.figure.canvas.draw()
 
     def disable(self):
         """
@@ -378,6 +389,10 @@ class DataCursor(object):
             self._cids = [(fig, connect(fig)) for fig in self.figures]
             for artist in self.artists:
                 artist.set_picker(self.tolerance)
+            for annotation in self.annotations.values():
+                # Annotation boxes need to be pickable so we can hide them on
+                # right-click (or whatever self.hide_button is).
+                annotation.set_picker(self.tolerance)
             self._enabled = True
         return self
 
@@ -425,6 +440,11 @@ class DataCursor(object):
         to be a callback connected to matplotlib's pick event.)"""
         ax = event.artist.axes
 
+        if (event.artist in self.annotations.values() and 
+            event.mouseevent.button == self.hide_button):
+            self._hide_box(event.artist)
+            return
+
         # Ignore pick events for the annotation box itself (otherwise, 
         # draggable annotation boxes won't work) and pick events not for the
         # artists that this particular data cursor manages.
@@ -432,7 +452,7 @@ class DataCursor(object):
             return
 
 	# ignore pick events coming from mouse buttons we don't want to see
-	if event.mouseevent.button in self.ignore_buttons:
+        if event.mouseevent.button != self.display_button and not self.hover:
 	    return
 
         # Return if multiple events are firing 

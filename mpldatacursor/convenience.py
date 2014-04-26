@@ -127,6 +127,14 @@ def datacursor(artists=None, axes=None, **kwargs):
     date_format : string, optional
         The strftime-style formatting string for dates. Used only if the x or y
         axes have been set to display dates. Defaults to "%x %X".
+    display_button: int, optional
+        The mouse button that will triggers displaying an annotation box.
+        Defaults to 1, for left-clicking. (Common options are 1:left-click,
+        2:middle-click, 3:right-click)
+    hide_button: int or None, optional
+        The mouse button that triggers hiding the selected annotation box.
+        Defaults to 3, for right-clicking. (Common options are 1:left-click,
+        2:middle-click, 3:right-click, None:hiding disabled)
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 

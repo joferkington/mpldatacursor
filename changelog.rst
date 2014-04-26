@@ -1,6 +1,14 @@
 Current Development Version
 ---------------------------
 
+4/26/2014
+        Specific annotation boxes can now be hidden by right-clicking. Added
+        "hide_button" and "display_button" options to control exactly which
+        mouse buttons show/hide annotation boxes. Now _only_ a specific mouse
+        button ("display_button", which defaults to 1) will display a
+        datacursor, rather than any mouse button triggering a display. Thanks
+        to Joe Louderback for the idea and initial pull request.
+
 3/12/2014
         Made datacursor auto-detect if the x or y axes are set to display dates
         and format the coordinate as a date if so. Also added the "date_format"
