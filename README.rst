@@ -49,10 +49,13 @@ As an example (the output is identical to the first example)::
 
         plt.show()
 
-To hide the annotation boxes, press "d" on the keyboard. (Think of "delete".
-"h" was taken by matplotlib's default key for "home".) To disable or re-enable
-interactive datacursors, press "t" (for "toggle").  These keys can be
-customized through the ``keybindings`` kwarg.  
+Hiding Annotation Boxes and Toggling Interactivity
+-------------------------------------------------
+To hide a specific annotation box, right-click on it (Customizable through the
+``hide_button`` kwarg).  To hide all annotation boxes, press "d" on the
+keyboard.  (Think of "delete".  "h" was taken by matplotlib's default key for
+"home".) To disable or re-enable interactive datacursors, press "t" (for
+"toggle").  These keys can be customized through the ``keybindings`` kwarg.  
 
 Controlling the Displayed Text
 ------------------------------
