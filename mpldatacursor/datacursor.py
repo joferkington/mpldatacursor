@@ -50,7 +50,7 @@ class DataCursor(object):
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                 display='one-per-axes', draggable=False, hover=False, 
                 props_override=None, keybindings=True, date_format='%x %X', 
-                **kwargs):
+		ignore_buttons=(), **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -98,6 +98,10 @@ class DataCursor(object):
         date_format : string, optional
             The strftime-style formatting string for dates. Used only if the x
             or y axes have been set to display dates. Defaults to "%x %X".
+	ignore_buttons: tuple, optional
+	    Disable catching pick events for the listed mouse buttons,
+	    eg: ignore_buttons = (2, 3) turns off data cursors for middle and
+	    right clicks.
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -148,6 +152,7 @@ class DataCursor(object):
         self.draggable = draggable
         self.date_format = date_format
         self.props_override = props_override
+	self.ignore_buttons = frozenset(ignore_buttons)
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
 
@@ -425,6 +430,10 @@ class DataCursor(object):
         # artists that this particular data cursor manages.
         if event.artist not in self.artists:
             return
+
+	# ignore pick events coming from mouse buttons we don't want to see
+	if event.mouseevent.button in self.ignore_buttons:
+	    return
 
         # Return if multiple events are firing 
         if not self.timer_expired[ax]:
