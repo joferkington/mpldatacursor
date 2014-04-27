@@ -208,6 +208,59 @@ class DataCursor(object):
 
         self.enable()
 
+    def __call__(self, event):
+        """Create or update annotations for the given event. (This is intended
+        to be a callback connected to matplotlib's pick event.)"""
+        # Hide the selected annotation box if it's clicked with "hide_button".
+        if (event.artist in self.annotations.values() and 
+            event.mouseevent.button == self.hide_button):
+            self._hide_box(event.artist)
+
+        elif not self._event_ignored(event):
+            # Otherwise, start a timer and show the annotation box
+            self.timer_expired[event.artist.axes] = False
+            self.ax_timer[event.artist.axes].start()
+            self._show_annotation_box(event)
+
+    def _event_ignored(self, event):
+        """Decide whether or not to ignore a click/hover event."""
+        # Ignore non-hiding pick events for the annotation box itself
+        # (otherwise, draggable annotation boxes won't work) and pick
+        # events not for the artists that this data cursor manages.
+        if event.artist not in self.artists:
+            return True
+
+        if not self.hover:
+            # Ignore pick events from other mouse buttons
+            if event.mouseevent.button != self.display_button:
+                return True
+
+            # Return if multiple events are firing 
+            if not self.timer_expired[event.artist.axes]:
+                return True
+        return False
+
+    def _show_annotation_box(self, event):
+        """Update an existing box or create an annotation box for an event."""
+        ax = event.artist.axes
+        # Get the pre-created annotation box for the axes or create a new one.
+        if self.display != 'multiple':
+            annotation = self.annotations[ax]
+        elif event.mouseevent in self.annotations:
+            # Avoid creating multiple datacursors for the same click event
+            # when several artists are selected.
+            annotation = self.annotations[event.mouseevent]
+        else:
+            annotation = self.annotate(ax, **self._annotation_kwargs)
+            self.annotations[event.mouseevent] = annotation
+
+        if self.display == 'single':
+            # Hide any other annotation boxes...
+            for ann in self.annotations.values():
+                ann.set_visible(False)
+
+        self.update(event, annotation)
+
     def event_info(self, event):
         """Get a dict of info for the artist selected by "event"."""
         def default_func(event):
@@ -434,51 +487,6 @@ class DataCursor(object):
             # Not hovering over anything...
             if any(item.get_visible() for item in self.annotations.values()):
                 self.hide()
-
-    def __call__(self, event):
-        """Create or update annotations for the given event. (This is intended
-        to be a callback connected to matplotlib's pick event.)"""
-        ax = event.artist.axes
-
-        if (event.artist in self.annotations.values() and 
-            event.mouseevent.button == self.hide_button):
-            self._hide_box(event.artist)
-            return
-
-        # Ignore pick events for the annotation box itself (otherwise, 
-        # draggable annotation boxes won't work) and pick events not for the
-        # artists that this particular data cursor manages.
-        if event.artist not in self.artists:
-            return
-
-	# ignore pick events coming from mouse buttons we don't want to see
-        if event.mouseevent.button != self.display_button and not self.hover:
-	    return
-
-        # Return if multiple events are firing 
-        if not self.timer_expired[ax]:
-            if not self.hover:
-                return
-        self.timer_expired[ax] = False
-        self.ax_timer[ax].start()
-        
-        # Get the pre-created annotation box for the axes or create a new one.
-        if self.display != 'multiple':
-            annotation = self.annotations[ax]
-        elif event.mouseevent in self.annotations:
-            # Avoid creating multiple datacursors for the same click event
-            # when several artists are selected.
-            annotation = self.annotations[event.mouseevent]
-        else:
-            annotation = self.annotate(ax, **self._annotation_kwargs)
-            self.annotations[event.mouseevent] = annotation
-
-        if self.display == 'single':
-            # Hide any other annotation boxes...
-            for ann in self.annotations.values():
-                ann.set_visible(False)
-
-        self.update(event, annotation)
 
 class HighlightingDataCursor(DataCursor):
     """A data cursor that highlights the selected Line2D artist."""
