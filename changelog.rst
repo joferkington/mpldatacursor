@@ -1,6 +1,10 @@
 Current Development Version
 ---------------------------
 
+6/16/2014
+        Added workaround to ensure that mpldatacursor works properly with
+        twinned axes.  Thanks to Nils Wagner for the bug report!
+
 4/26/2014
         Specific annotation boxes can now be hidden by right-clicking. Added
         "hide_button" and "display_button" options to control exactly which

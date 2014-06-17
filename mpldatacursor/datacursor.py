@@ -422,16 +422,18 @@ class DataCursor(object):
         """Connects callbacks and makes artists pickable. If the datacursor has
         already been enabled, this function has no effect."""
         def connect(fig):
-            cids = [fig.canvas.mpl_connect('pick_event', self)]
             if self.hover:
-                c = fig.canvas.mpl_connect('motion_notify_event', self._on_hover)
-                cids.append(c)
+                event = 'motion_notify_event'
+            else:
+                event = 'button_press_event'
+            cids = [fig.canvas.mpl_connect(event, self._select)]
+            cids.append(fig.canvas.mpl_connect('pick_event', self))
 
             # None of this should be necessary. Workaround for a bug in some 
             # mpl versions
             try:
                 proxy = fig.canvas.callbacks.BoundMethodProxy(self)
-                fig.canvas.callbacks.callbacks['pick_event'][cids[0]] = proxy
+                fig.canvas.callbacks.callbacks[event][cids[-1]] = proxy
             except AttributeError:
                 # In some versions of mpl, BoundMethodProxy doesn't exist...
                 # See: https://github.com/joferkington/mpldatacursor/issues/2
@@ -480,7 +482,20 @@ class DataCursor(object):
         if event.key == self.keybindings['toggle']:
             self.enabled = not self.enabled
 
-    def _on_hover(self, event):
+    def _select(self, event):
+        """This is basically a proxy to trigger a pick event.  This function is
+        connected to either a mouse motion or mouse button event (see
+        "self.enable") depending on "self.hover". If we're over a point, it
+        fires a pick event. 
+
+        This probably seems bizarre, but it's required for hover mode (no mouse
+        click) and otherwise it's a workaround for picking artists in twinned
+        or overlapping axes.
+        
+        Even if we're not in hover mode, pick events won't work properly for
+        twinned axes.  Therefore, we manually go through all artists managed by
+        this datacursor and fire a pick event if the mouse is over an a managed
+        artist."""
         for artist in self.artists:
             artist.pick(event)
         if any(self.timer_expired.values()):
