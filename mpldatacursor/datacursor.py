@@ -498,7 +498,7 @@ class DataCursor(object):
         artist."""
         for artist in self.artists:
             artist.pick(event)
-        if any(self.timer_expired.values()):
+        if any(self.timer_expired.values()) and not self.draggable:
             # Not hovering over anything...
             if any(item.get_visible() for item in self.annotations.values()):
                 self.hide()
