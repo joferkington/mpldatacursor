@@ -135,7 +135,7 @@ def line_props(event):
     xorig, yorig = event.artist.get_xydata().T
     d = ((xclick-xorig[0])**2 + (yclick-yorig[0])**2)**0.5
     i=0
-    import pdb
+
     for itmp,(xo,yo) in enumerate(zip(xorig[1:],yorig[1:])):
         dtmp = ((xclick-xo)**2 + (yclick-yo)**2)**0.5
         if dtmp<d:
