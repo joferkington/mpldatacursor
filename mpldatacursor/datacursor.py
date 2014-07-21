@@ -41,7 +41,7 @@ class DataCursor(object):
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                 display='one-per-axes', draggable=False,interpolate_pickpos=True, **kwargs):
+                 display='one-per-axes', draggable=False,interpolate_pickpos=False, **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
