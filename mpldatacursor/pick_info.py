@@ -130,10 +130,18 @@ def line_props(event):
         A dict with keys: x & y
     """
     xclick, yclick = event.mouseevent.xdata, event.mouseevent.ydata
-    i = event.ind[0]
+    #i = event.ind[0]
+    #Search the nearest point
     xorig, yorig = event.artist.get_xydata().T
-
-
+    d = ((xclick-xorig[0])**2 + (yclick-yorig[0])**2)**0.5
+    i=0
+    import pdb
+    for itmp,(xo,yo) in enumerate(zip(xorig[1:],yorig[1:])):
+        dtmp = ((xclick-xo)**2 + (yclick-yo)**2)**0.5
+        if dtmp<d:
+            d = dtmp
+            i=itmp+1
+    print(d,i)
     return dict(x=xorig[i], y=yorig[i])
 
 def collection_props(event):
