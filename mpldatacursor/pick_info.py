@@ -141,7 +141,6 @@ def line_props(event):
         if dtmp<d:
             d = dtmp
             i=itmp+1
-    print(d,i)
     return dict(x=xorig[i], y=yorig[i])
 
 def collection_props(event):
