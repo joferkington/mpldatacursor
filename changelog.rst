@@ -1,6 +1,15 @@
 Current Development Version
 ---------------------------
 
+7/26/2014
+        Made default formatter function handle unicode properly. Thanks to
+        Benjamin Chrétien for the catch!  Due to the way I've currently
+        implemented this (explicitly unicode literals), it makes mpldatacursor
+        incompatible with python 3.0, 3.1, and 3.2.  However, compatibility
+        with python 2.6, 2.7, 3.3, and 3.4 will be maintained.  I may change
+        this in the future, but for the moment, be aware that the development
+        version current supports >3.3, but not 3.0, 3.1, or 3.2.
+
 6/16/2014
         Added workaround to ensure that mpldatacursor works properly with
         twinned axes.  Thanks to Nils Wagner for the bug report!

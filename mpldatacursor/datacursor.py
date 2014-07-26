@@ -326,21 +326,21 @@ class DataCursor(object):
         for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
             if val is not None:
                 try:
-                    output.append('{key}: {val:0.3g}'.format(key=key, val=val))
+                    output.append(u'{key}: {val:0.3g}'.format(key=key, val=val))
                 except ValueError:
                     # For masked arrays, etc, "z" value may be a string...
                     # Similarly, x or y will be strings if they are dates.
-                    output.append('{key}: {val}'.format(key=key, val=val))
+                    output.append(u'{key}: {val}'.format(key=key, val=val))
 
         # label may be None or an empty string (for an un-labeled AxesImage)...
         # Un-labeled Line2D's will have labels that start with an underscore
         if label and not label.startswith('_'):
-            output.append('Label: {}'.format(label))
+            output.append(u'Label: {}'.format(label))
 
-        if kwargs.get('point_label', None) is not None:
-            output.append('Point: '+', '.join(kwargs['point_label']))
+        if kwargs.get(u'point_label', None) is not None:
+            output.append(u'Point: ' + u', '.join(kwargs['point_label']))
 
-        return '\n'.join(output)
+        return u'\n'.join(output)
 
     def annotate(self, ax, **kwargs):
         """
