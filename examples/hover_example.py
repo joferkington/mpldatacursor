@@ -1,6 +1,6 @@
 """
 Demonstrates the hover functionality of mpldatacursor as well as point labels
-and a custom formatting function. Notice that overlapping points have both 
+and a custom formatting function. Notice that overlapping points have both
 labels displayed.
 """
 import string

@@ -14,7 +14,7 @@ ax.set(xticks=range(9), xticklabels=labels, title='Hover over a bar')
 
 # By default, the "popup" annotation will appear at the mouse's position.
 # Instead, you might want it to appear centered at the top of the rectangle in
-# the bar plot. By changing the x and y values using the "props_override" 
+# the bar plot. By changing the x and y values using the "props_override"
 # option, we can customize where the "popup" appears.
 def override(**kwargs):
     kwargs['x'] = kwargs['left'] + 0.5 * kwargs['width']
@@ -22,7 +22,7 @@ def override(**kwargs):
     kwargs['label'] = labels[int(kwargs['x'])]
     return kwargs
 
-datacursor(hover=True, xytext=(0, 20), props_override=override, 
+datacursor(hover=True, xytext=(0, 20), props_override=override,
            formatter='{label}: {height}'.format)
 
 plt.show()

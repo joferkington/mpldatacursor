@@ -52,7 +52,7 @@ def image_props(event):
     Get information for a pick event on an ``AxesImage`` artist. Returns a dict
     of "i" & "j" index values of the image for the point clicked, and "z": the
     (uninterpolated) value of the image at i,j.
-    
+
     Parameters
     -----------
     event : PickEvent
@@ -76,10 +76,10 @@ def line_props(event):
     Get information for a pick event on a Line2D artist (as created with
     ``plot``.)
 
-    This will yield x and y values that are interpolated between verticies 
+    This will yield x and y values that are interpolated between verticies
     (instead of just being the position of the mouse) or snapped to the nearest
     vertex only the vertices are drawn.
- 
+
     Parameters
     -----------
     event : PickEvent
@@ -113,7 +113,7 @@ def line_props(event):
 
 def collection_props(event):
     """
-    Get information for a pick event on an artist collection (e.g. 
+    Get information for a pick event on an artist collection (e.g.
     LineCollection, PathCollection, PatchCollection, etc).  This will"""
     ind = event.ind[0]
     arr = event.artist.get_array()
@@ -126,24 +126,24 @@ def collection_props(event):
 
 def scatter_props(event):
     """
-    Get information for a pick event on a PathCollection artist (usually 
-    created with ``scatter``). 
- 
+    Get information for a pick event on a PathCollection artist (usually
+    created with ``scatter``).
+
     Parameters
     -----------
     event : PickEvent
         The pick event to process
-    
+
     Returns
     --------
-    A dict with keys: 
+    A dict with keys:
         `c`: The value of the color array at the point clicked.
         `s`: The value of the size array at the point clicked.
         `z`: Identical to `c`. Specified for convenience.
 
     Notes
     -----
-    If constant values were specified to ``c`` or ``s`` when calling 
+    If constant values were specified to ``c`` or ``s`` when calling
     ``scatter``, `c` and/or `z` will be ``None``.
     """
     # Use only the first item, if multiple items were selected

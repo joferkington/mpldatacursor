@@ -40,16 +40,16 @@ class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
 
-    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15), 
-                textcoords='offset points', 
+    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15),
+                textcoords='offset points',
                 bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
     default_keybindings = dict(hide='d', toggle='t')
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                display='one-per-axes', draggable=False, hover=False, 
-                props_override=None, keybindings=True, date_format='%x %X', 
+                display='one-per-axes', draggable=False, hover=False,
+                props_override=None, keybindings=True, date_format='%x %X',
 		display_button=1, hide_button=3,
                 **kwargs):
         """Create the data cursor and connect it to the relevant figure.
@@ -72,13 +72,13 @@ class DataCursor(object):
             function as the `point_label` kwarg.  May be either a single
             sequence (used for all artists) or a dict of artist:sequence pairs.
         display : {'one-per-axes', 'single', 'multiple'}, optional
-            Controls whether more than one annotation box will be shown.        
+            Controls whether more than one annotation box will be shown.
         draggable : boolean, optional
             Controls whether or not the annotation box will be interactively
             draggable to a new location after being displayed. Default: False.
         hover : boolean, optional
             If True, the datacursor will "pop up" when the mouse hovers over an
-            artist.  Defaults to False.  Enabling hover also sets 
+            artist.  Defaults to False.  Enabling hover also sets
             `display="single"` and `draggable=False`.
         props_override : function, optional
             If specified, this function customizes the parameters passed into
@@ -132,7 +132,7 @@ class DataCursor(object):
         # These are particularly difficult, as the original z-value array
         # is never associated with the ContourSet, and they're not "normal"
         # artists (they're not actually added to the axes). Not only that, but
-        # the PatchCollections created by filled contours don't even fire a 
+        # the PatchCollections created by filled contours don't even fire a
         # pick event for points inside them, only on their edges. At any rate,
         # this is a somewhat hackish way of handling contours, but it works.
         self.artists = filter_artists(artists)
@@ -158,7 +158,7 @@ class DataCursor(object):
         self.date_format = date_format
         self.props_override = props_override
         self.display_button = display_button
-        self.hide_button = hide_button 
+        self.hide_button = hide_button
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
 
@@ -175,7 +175,7 @@ class DataCursor(object):
                 # Hide the annotation box until clicked...
                 self.annotations[ax].set_visible(False)
 
-        # Timer to control call-rate. 
+        # Timer to control call-rate.
         def expire_func(ax, *args, **kwargs):
             self.timer_expired[ax] = True
             # Return True to keep callback
@@ -185,7 +185,7 @@ class DataCursor(object):
         self.ax_timer = {}
         for ax in self.axes:
             interval = 300 if self.hover else 100
-            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=interval, 
+            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=interval,
                                         callbacks=[(expire_func, [ax], {})])
             try:
                 if plt.get_backend() != 'MacOSX':
@@ -197,7 +197,7 @@ class DataCursor(object):
                 # safely ignored.
                 pass
             self.timer_expired[ax] = True
-            
+
         if keybindings:
             if keybindings is True:
                 self.keybindings = self.default_keybindings
@@ -212,7 +212,7 @@ class DataCursor(object):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to matplotlib's pick event.)"""
         # Hide the selected annotation box if it's clicked with "hide_button".
-        if (event.artist in self.annotations.values() and 
+        if (event.artist in self.annotations.values() and
             event.mouseevent.button == self.hide_button):
             self._hide_box(event.artist)
 
@@ -235,7 +235,7 @@ class DataCursor(object):
             if event.mouseevent.button != self.display_button:
                 return True
 
-            # Return if multiple events are firing 
+            # Return if multiple events are firing
             if not self.timer_expired[event.artist.axes]:
                 return True
         return False
@@ -267,14 +267,14 @@ class DataCursor(object):
             return {}
         registry = {
                 AxesImage : [pick_info.image_props],
-                PathCollection : [pick_info.scatter_props, self._contour_info, 
+                PathCollection : [pick_info.scatter_props, self._contour_info,
                                   pick_info.collection_props],
                 Line2D : [pick_info.line_props],
-                LineCollection : [pick_info.collection_props, 
+                LineCollection : [pick_info.collection_props,
                                   self._contour_info],
-                PatchCollection : [pick_info.collection_props, 
+                PatchCollection : [pick_info.collection_props,
                                    self._contour_info],
-                PolyCollection : [pick_info.collection_props, 
+                PolyCollection : [pick_info.collection_props,
                                   pick_info.scatter_props],
                 QuadMesh : [pick_info.collection_props],
                 Rectangle : [pick_info.rectangle_props],
@@ -312,7 +312,7 @@ class DataCursor(object):
         """
         def is_date(axis):
             fmt = axis.get_major_formatter()
-            return (isinstance(fmt, mdates.DateFormatter) 
+            return (isinstance(fmt, mdates.DateFormatter)
                  or isinstance(fmt, mdates.AutoDateFormatter))
         def format_date(num):
             return mdates.num2date(num).strftime(self.date_format)
@@ -351,13 +351,13 @@ class DataCursor(object):
             if kwargs.get(key, None) is not None:
                 new = copy.deepcopy(self.default_annotation_kwargs[key])
                 new.update(kwargs[key])
-                kwargs[key] = new 
+                kwargs[key] = new
             return kwargs
 
         user_set_ha = 'ha' in kwargs or 'horizontalalignment' in kwargs
         user_set_va = 'va' in kwargs or 'verticalalignment' in kwargs
 
-        # Ensure bbox and arrowstyle params passed in use the defaults for 
+        # Ensure bbox and arrowstyle params passed in use the defaults for
         # DataCursor. This allows things like ``bbox=dict(alpha=1)`` to show a
         # yellow, rounded box, instead of the mpl default blue, square box.)
         kwargs = update_from_defaults('bbox', kwargs)
@@ -380,7 +380,7 @@ class DataCursor(object):
 
         annotation = ax.annotate('This text will be reset', **kwargs)
 
-        # Place the annotation in the figure instead of the axes so that it 
+        # Place the annotation in the figure instead of the axes so that it
         # doesn't get hidden behind other subplots (zorder won't fix that).
         ax.figure.texts.append(ax.texts.pop())
 
@@ -398,7 +398,7 @@ class DataCursor(object):
         for fig in self.figures:
             fig.canvas.draw()
         return self
-    
+
     def _hide_box(self, annotation):
         """Hide a specific annotation box."""
         annotation.set_visible(False)
@@ -429,7 +429,7 @@ class DataCursor(object):
             cids = [fig.canvas.mpl_connect(event, self._select)]
             cids.append(fig.canvas.mpl_connect('pick_event', self))
 
-            # None of this should be necessary. Workaround for a bug in some 
+            # None of this should be necessary. Workaround for a bug in some
             # mpl versions
             try:
                 proxy = fig.canvas.callbacks.BoundMethodProxy(self)
@@ -456,7 +456,7 @@ class DataCursor(object):
             self.enable()
         else:
             self.disable()
-    enabled = property(lambda self: self._enabled, _set_enabled, 
+    enabled = property(lambda self: self._enabled, _set_enabled,
                     doc="The interactive state of the datacursor")
 
     def update(self, event, annotation):
@@ -467,7 +467,7 @@ class DataCursor(object):
         if self.props_override is not None:
             info = self.props_override(**info)
 
-        # Update the xy position and text using the formatter function 
+        # Update the xy position and text using the formatter function
         annotation.set_text(self.formatter(**info))
         annotation.xy = info['x'], info['y']
 
@@ -486,12 +486,12 @@ class DataCursor(object):
         """This is basically a proxy to trigger a pick event.  This function is
         connected to either a mouse motion or mouse button event (see
         "self.enable") depending on "self.hover". If we're over a point, it
-        fires a pick event. 
+        fires a pick event.
 
         This probably seems bizarre, but it's required for hover mode (no mouse
         click) and otherwise it's a workaround for picking artists in twinned
         or overlapping axes.
-        
+
         Even if we're not in hover mode, pick events won't work properly for
         twinned axes.  Therefore, we manually go through all artists managed by
         this datacursor and fire a pick event if the mouse is over an a managed
@@ -507,7 +507,7 @@ class HighlightingDataCursor(DataCursor):
     """A data cursor that highlights the selected Line2D artist."""
     def __init__(self, *args, **kwargs):
         """
-        Accepts a series of artists to interactively highlight. 
+        Accepts a series of artists to interactively highlight.
 
         Arguments are identical to ``DataCursor`` except for the following
         keyword arguments:
@@ -545,7 +545,7 @@ class HighlightingDataCursor(DataCursor):
         else:
             self.highlights[artist] = self.create_highlight(artist)
         return self.highlights[artist]
-    
+
     def create_highlight(self, artist):
         """Create a new highlight for the given artist."""
         highlight = copy.copy(artist)

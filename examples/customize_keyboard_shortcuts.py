@@ -1,6 +1,6 @@
 """
 An example of how to customize the keyboard shortcuts.
-By default mpldatacursor will use "t" to toggle interactivity and "d" to 
+By default mpldatacursor will use "t" to toggle interactivity and "d" to
 hide/delete annotation boxes.
 """
 import matplotlib.pyplot as plt

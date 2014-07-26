@@ -26,12 +26,12 @@ from .datacursor import DataCursor
 
 def datacursor(artists=None, axes=None, **kwargs):
     """
-    Create an interactive data cursor for the specified artists or specified 
+    Create an interactive data cursor for the specified artists or specified
     axes. The data cursor displays information about a selected artist in a
     "popup" annotation box.
 
     If a specific sequence of artists is given, only the specified artists will
-    be interactively selectable.  Otherwise, all manually-plotted artists in 
+    be interactively selectable.  Otherwise, all manually-plotted artists in
     *axes* will be used (*axes* defaults to all axes in all figures).
 
     Parameters
@@ -56,7 +56,7 @@ def datacursor(artists=None, axes=None, **kwargs):
             `x`, `y` : floats
                 The x and y data coordinates of the clicked point
             `event` : a matplotlib ``PickEvent``
-                The pick event that was fired (note that the selected 
+                The pick event that was fired (note that the selected
                 artist can be accessed through ``event.artist``).
             `label` : string or None
                 The legend label of the selected artist.
@@ -76,7 +76,7 @@ def datacursor(artists=None, axes=None, **kwargs):
                 "c" value if an array was passed to "c".
             `i`, `j` : ints
                 The row, column indicies of the selected point for an
-                ``AxesImage`` (as created by ``imshow``) 
+                ``AxesImage`` (as created by ``imshow``)
             `s` : number
                 The size of the selected item in a ``PathCollection`` if a size
                 array is specified.
@@ -99,7 +99,7 @@ def datacursor(artists=None, axes=None, **kwargs):
         "subitems". Alternatively, a dict of artist:sequence pairs may be given
         to match an artist to the correct series of point labels.
     display : {"one-per-axes", "single", "multiple"}, optional
-        Controls whether more than one annotation box will be shown. 
+        Controls whether more than one annotation box will be shown.
         Default: "one-per-axes"
     draggable : boolean, optional
         Controls whether or not the annotation box will be interactively
@@ -115,7 +115,7 @@ def datacursor(artists=None, axes=None, **kwargs):
         specific side or corner of an artist, regardless of the position
         clicked. The function is passed the same kwargs as the `formatter`
         function and is expected to return a dict with at least the keys "x"
-        and "y" (and probably several others).  
+        and "y" (and probably several others).
         Expected call signature: `props_dict = props_override(**kwargs)`
     keybindings : boolean or dict, optional
         By default, the keys "d" and "t" will be bound to deleting/hiding all
@@ -143,7 +143,7 @@ def datacursor(artists=None, axes=None, **kwargs):
     dc : A ``mpldatacursor.DataCursor`` instance
     """
     def plotted_artists(ax):
-        artists = (ax.lines + ax.patches + ax.collections 
+        artists = (ax.lines + ax.patches + ax.collections
                    + ax.images + ax.containers)
         return artists
 
@@ -156,7 +156,7 @@ def datacursor(artists=None, axes=None, **kwargs):
     if not cbook.iterable(axes):
         axes = [axes]
 
-    # If no artists are specified, get all manually plotted artists in all of 
+    # If no artists are specified, get all manually plotted artists in all of
     # the specified axes.
     if artists is None:
         artists = [artist for ax in axes for artist in plotted_artists(ax)]

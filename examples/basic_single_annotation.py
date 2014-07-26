@@ -1,4 +1,4 @@
-"""An example demonstrating displaying only a single annotation box cursor for 
+"""An example demonstrating displaying only a single annotation box cursor for
 multiple subplots."""
 import matplotlib.pyplot as plt
 import numpy as np

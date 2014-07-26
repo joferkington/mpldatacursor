@@ -31,7 +31,7 @@ class MultiHighlight(mpldatacursor.HighlightingDataCursor):
     it's linked partner will be highlighted."""
     def __init__(self, paired_artists, **kwargs):
         """
-        Initialization is identical to HighlightingDataCursor except for the 
+        Initialization is identical to HighlightingDataCursor except for the
         following:
 
         Parameters:
