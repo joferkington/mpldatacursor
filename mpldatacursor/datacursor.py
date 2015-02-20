@@ -41,7 +41,7 @@ class DataCursor(object):
     matplotlib artist in an annotation box when the artist is clicked on."""
 
     default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15),
-                textcoords='offset points',
+                textcoords='offset points', picker=True,
                 bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
@@ -169,7 +169,7 @@ class DataCursor(object):
 
         self._annotation_kwargs = kwargs
         self.annotations = {}
-        if display is not 'multiple':
+        if self.display is not 'multiple':
             for ax in self.axes:
                 self.annotations[ax] = self.annotate(ax, **kwargs)
                 # Hide the annotation box until clicked...
@@ -498,9 +498,13 @@ class DataCursor(object):
         artist."""
         for artist in self.artists:
             artist.pick(event)
+            
+        from itertools import chain        
+        over_something = [x.contains(event)[0] for x in chain(self.artists, self.annotations.values())]
+        
         if any(self.timer_expired.values()) and not self.draggable:
             # Not hovering over anything...
-            if any(item.get_visible() for item in self.annotations.values()):
+            if not any(over_something) and self.hover:
                 self.hide()
 
 class HighlightingDataCursor(DataCursor):
