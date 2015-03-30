@@ -497,11 +497,18 @@ class DataCursor(object):
         this datacursor and fire a pick event if the mouse is over an a managed
         artist."""
         for artist in self.artists:
+            # We need to redefine event.xdata and event.ydata for twinned axes
+            # to work correctly
+            point = event.x, event.y
+            x, y = artist.axes.transData.inverted().transform_point(point)
+            event = copy.copy(event)
+            event.xdata, event.ydata = x, y
             artist.pick(event)
-            
-        from itertools import chain        
-        over_something = [x.contains(event)[0] for x in chain(self.artists, self.annotations.values())]
-        
+
+        from itertools import chain
+        all_artists = chain(self.artists, self.annotations.values())
+        over_something = [x.contains(event)[0] for x in all_artists]
+
         if any(self.timer_expired.values()) and not self.draggable:
             # Not hovering over anything...
             if not any(over_something) and self.hover:
