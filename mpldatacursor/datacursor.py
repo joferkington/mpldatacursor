@@ -42,8 +42,11 @@ class DataCursor(object):
 
     default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15),
                 textcoords='offset points', picker=True,
-                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
-                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5,
+                          edgecolor='black'),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0',
+                                edgecolor='black'),
+                )
 
     default_keybindings = dict(hide='d', toggle='t')
 
