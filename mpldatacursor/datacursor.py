@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import itertools
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,6 +35,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 import matplotlib.dates as mdates
 from matplotlib.ticker import ScalarFormatter
+from matplotlib.backend_bases import PickEvent
 
 from . import pick_info
 
@@ -243,6 +245,7 @@ class DataCursor(object):
             # Return if multiple events are firing
             if not self.timer_expired[event.artist.axes]:
                 return True
+
         return False
 
     def _show_annotation_box(self, event):
@@ -353,7 +356,7 @@ class DataCursor(object):
 
     def _format_coord(self, x, limits):
         """
-        Handles range-specific formatting for the x and y coords. A fixed
+        Handles display-range-specific formatting for the x and y coords.
 
         Parameters
         ----------
@@ -455,7 +458,6 @@ class DataCursor(object):
             else:
                 event = 'button_press_event'
             cids = [fig.canvas.mpl_connect(event, self._select)]
-            cids.append(fig.canvas.mpl_connect('pick_event', self))
 
             # None of this should be necessary. Workaround for a bug in some
             # mpl versions
@@ -470,12 +472,6 @@ class DataCursor(object):
 
         if not getattr(self, '_enabled', False):
             self._cids = [(fig, connect(fig)) for fig in self.figures]
-            for artist in self.artists:
-                artist.set_picker(self.tolerance)
-            for annotation in self.annotations.values():
-                # Annotation boxes need to be pickable so we can hide them on
-                # right-click (or whatever self.hide_button is).
-                annotation.set_picker(self.tolerance)
             self._enabled = True
         return self
 
@@ -524,17 +520,33 @@ class DataCursor(object):
         twinned axes.  Therefore, we manually go through all artists managed by
         this datacursor and fire a pick event if the mouse is over an a managed
         artist."""
-        for artist in self.artists:
+        def event_axes_data(event, ax):
+            """Creates a new event will have xdata and ydata based on *ax*."""
             # We need to redefine event.xdata and event.ydata for twinned axes
             # to work correctly
             point = event.x, event.y
-            x, y = artist.axes.transData.inverted().transform_point(point)
+            x, y = ax.transData.inverted().transform_point(point)
             event = copy.copy(event)
             event.xdata, event.ydata = x, y
-            artist.pick(event)
+            return event
 
-        from itertools import chain
-        all_artists = chain(self.artists, self.annotations.values())
+        if self.draggable:
+            # If we're on top of an annotation box, don't do anything
+            for anno in self.annotations.values():
+                fixed_event = event_axes_data(event, anno.axes)
+                if anno.contains(fixed_event)[0]:
+                    return
+
+        for artist in self.artists:
+            fixed_event = event_axes_data(event, artist.axes)
+            inside, info = artist.contains(fixed_event)
+            if inside:
+                fig = artist.figure
+                new_event = PickEvent('pick_event', fig.canvas, fixed_event,
+                                     artist, **info)
+                self(new_event)
+
+        all_artists = itertools.chain(self.artists, self.annotations.values())
         over_something = [x.contains(event)[0] for x in all_artists]
 
         if any(self.timer_expired.values()) and not self.draggable:
