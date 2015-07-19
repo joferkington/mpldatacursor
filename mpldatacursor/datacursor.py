@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cbook
 from matplotlib import offsetbox
 
+import matplotlib
 from matplotlib.contour import ContourSet
 from matplotlib.image import AxesImage
 from matplotlib.collections import PathCollection, LineCollection
@@ -605,3 +606,8 @@ class HighlightingDataCursor(DataCursor):
                       picker=None)
         artist.axes.add_artist(highlight)
         return highlight
+
+# Workaround for bug in matplotlib 1.4.x series
+if matplotlib.__version__.startswith('1.4'):
+    DataCursor.default_annotation_kwargs['bbox']['alpha'] = 1
+    DataCursor.default_annotation_kwargs['bbox']['fc'] = 'khaki'
