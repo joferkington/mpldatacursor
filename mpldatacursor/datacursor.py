@@ -226,8 +226,14 @@ class DataCursor(object):
 
         elif not self._event_ignored(event):
             # Otherwise, start a timer and show the annotation box
-            self.timer_expired[event.artist.axes] = False
-            self.ax_timer[event.artist.axes].start()
+            try:
+                self.ax_timer[event.artist.axes].start()
+                self.timer_expired[event.artist.axes] = False
+            except AttributeError:
+                # Nbagg timers can't be started with some versions.
+                # If this happens (AttributeError) don't use timers at all
+                pass
+
             self._show_annotation_box(event)
 
     def _event_ignored(self, event):
