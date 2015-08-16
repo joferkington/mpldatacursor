@@ -57,7 +57,7 @@ class DataCursor(object):
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                 display='one-per-axes', draggable=False, hover=False,
                 props_override=None, keybindings=True, date_format='%x %X',
-		display_button=1, hide_button=3,
+		display_button=1, hide_button=3, keep_inside=True,
                 **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
@@ -114,6 +114,10 @@ class DataCursor(object):
             The mouse button that triggers hiding the selected annotation box.
             Defaults to 3, for right-clicking. (Common options are
             1:left-click, 2:middle-click, 3:right-click, None:hiding disabled)
+        keep_inside : boolean, optional
+            Whether or not to adjust the x,y offset to keep the text box inside
+            the figure. This option has no effect on draggable datacursors.
+            Defaults to True.
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -159,6 +163,7 @@ class DataCursor(object):
             self.display = 'single'
             self.draggable = False
 
+        self.keep_inside = keep_inside
         self.tolerance = tolerance
         self.point_labels = point_labels
         self.draggable = draggable
@@ -169,6 +174,12 @@ class DataCursor(object):
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
         self._mplformatter = ScalarFormatter(useOffset=False, useMathText=True)
+
+        if self.draggable:
+            # If we're dealing with draggable cursors, don't try to override
+            # the x,y position.  Otherwise, dragging the cursor outside the
+            # figure will have unexpected consequences.
+            self.keep_inside = False
 
         if formatter is None:
             self.formatter = self._formatter
@@ -392,8 +403,6 @@ class DataCursor(object):
                 kwargs[key] = new
             return kwargs
 
-        user_set_ha = 'ha' in kwargs or 'horizontalalignment' in kwargs
-        user_set_va = 'va' in kwargs or 'verticalalignment' in kwargs
 
         # Ensure bbox and arrowstyle params passed in use the defaults for
         # DataCursor. This allows things like ``bbox=dict(alpha=1)`` to show a
@@ -406,16 +415,6 @@ class DataCursor(object):
             if key not in kwargs:
                 kwargs[key] = self.default_annotation_kwargs[key]
 
-        # Make text alignment match the specified offsets (this allows easier
-        # changing of relative position of text box...)
-        dx, dy = kwargs['xytext']
-        horizontal = {1:'left', 0:'center', -1:'right'}[np.sign(dx)]
-        vertical = {1:'bottom', 0:'center', -1:'top'}[np.sign(dy)]
-        if not user_set_ha:
-            kwargs['ha'] = horizontal
-        if not user_set_va:
-            kwargs['va'] = vertical
-
         annotation = ax.annotate('This text will be reset', **kwargs)
 
         # Place the annotation in the figure instead of the axes so that it
@@ -426,7 +425,32 @@ class DataCursor(object):
         if self.draggable:
             offsetbox.DraggableAnnotation(annotation)
 
+        # Save whether or not alignment is user-specified. If not, adjust to
+        # match text offset (and update when display moves out of figure).
+        self._user_set_ha = 'ha' in kwargs or 'horizontalalignment' in kwargs
+        self._user_set_va = 'va' in kwargs or 'verticalalignment' in kwargs
+        self._adjust_alignment(annotation)
+
         return annotation
+
+    def _adjust_alignment(self, annotation):
+        """
+        Make text alignment match the specified offsets (this allows easier
+        changing of relative position of text box...)
+        """
+        try:
+            # annotation.xytext is depreciated in recent versions
+            dx, dy = annotation.xyann
+        except AttributeError:
+            # but xyann doesn't exist in older versions...
+            dx, dy = annotation.xytext
+
+        horizontal = {1:'left', 0:'center', -1:'right'}[np.sign(dx)]
+        vertical = {1:'bottom', 0:'center', -1:'top'}[np.sign(dy)]
+        if not self._user_set_ha:
+            annotation.set_horizontalalignment(horizontal)
+        if not self._user_set_va:
+            annotation.set_verticalalignment(vertical)
 
     def hide(self):
         """Hides all annotation artists associated with the DataCursor. Returns
@@ -505,7 +529,40 @@ class DataCursor(object):
         # In case it's been hidden earlier...
         annotation.set_visible(True)
 
+        if self.keep_inside:
+            self._keep_annotation_inside(annotation)
+
         event.canvas.draw()
+
+    def _keep_annotation_inside(self, anno):
+        fig = anno.figure
+
+        # Need to draw the annotation to get the correct extent
+        anno.draw(fig.canvas.renderer)
+        bbox = anno.get_window_extent()
+
+        inside = [fig.bbox.contains(*corner) for corner in bbox.corners()]
+        if all(inside):
+            return
+
+        outside = [not x for x in inside]
+        xsign, ysign = 1, 1
+
+        if outside[0] or outside[1]:
+            xsign = -1
+        if outside[2] or outside[3]:
+            ysign = -1
+
+        try:
+            # annotation.xytext is depreciated
+            dx, dy = anno.xyann
+            anno.xyann = xsign * dx, ysign * dy
+        except AttributeError:
+            # but annotation.xyann doesn't exist in older mpl versions.
+            dx, dy = anno.xytext
+            anno.xytext = xsign * dx, ysign * dy
+
+        self._adjust_alignment(anno)
 
     def _on_keypress(self, event):
         if event.key == self.keybindings['hide']:

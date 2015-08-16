@@ -135,6 +135,10 @@ def datacursor(artists=None, axes=None, **kwargs):
         The mouse button that triggers hiding the selected annotation box.
         Defaults to 3, for right-clicking. (Common options are 1:left-click,
         2:middle-click, 3:right-click, None:hiding disabled)
+    keep_inside : boolean, optional
+        Whether or not to adjust the x,y offset to keep the text box inside the
+        figure. This option has no effect on draggable datacursors. Defaults to
+        True.
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 

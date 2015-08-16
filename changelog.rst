@@ -1,6 +1,15 @@
 Current Development Version
 ---------------------------
 
+8/16/2015
+        Made annotation boxes try to stay visible by flipping the xytext value.
+        The *keep_inside* kwarg controls whether or not this happens.  Note
+        that this is a slight change to the default functionality: If the x,y
+        offset is adjusted to keep the text box visible, that offset will
+        "stick".  If you'd prefer the text box to _always_ be to the
+        upper-left/etc of the clicked point, set ``keep_inside=False``.
+        Thanks to AgilentGCMS for the suggestion!
+
 7/26/2014
         Made default formatter function handle unicode properly. Thanks to
         Benjamin Chrétien for the catch!  Due to the way I've currently
