@@ -3,6 +3,35 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+Major Changes in v0.6
+---------------------
+Version 0.6 adds:
+
+* Better handling of date-formatted axes.
+
+* "Popup" text boxes can be interactively hidden by right-clicking
+  (controllable through the ``hide_button`` and ``display_button`` kwargs).
+
+* Proper support for twinned axes.
+
+* Better unicode support for the formatter function. Note that this makes
+  ``mpldatacursor`` incompatibile with early 3.x versions (3.0, 3.1, and 3.2).
+  However, it remains compatible with Python >= 3.3 (e.g. 3.3, 3.4, and 3.5) as
+  well as 2.6 and 2.7.
+
+* Annotation boxes will now try to stay visible inside the figure by default.
+  Specify ``keep_inside=False`` to disable this.
+
+* Added basic support for extracting the z-value of 3D artists.
+
+* Made the precision of the default x & y formatting depend on the range of the
+  axes.
+
+* Full support for interactive IPython notebooks through the nbagg backend.
+  Note that the performance on the nbagg may be very poor.
+
+* Numerous bugfixes (Thanks to everyone for the reports!).
+
 Basic Usage
 -----------
 ``mpldatacursor`` offers a few different styles of interaction through the 
