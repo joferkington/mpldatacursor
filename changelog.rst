@@ -2,6 +2,9 @@ Current Development Version
 ---------------------------
 
 8/16/2015
+        Added basic support for getting the z-value of 3D artists.
+
+8/16/2015
         Made annotation boxes try to stay visible by flipping the xytext value.
         The *keep_inside* kwarg controls whether or not this happens.  Note
         that this is a slight change to the default functionality: If the x,y

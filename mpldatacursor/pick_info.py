@@ -21,6 +21,7 @@ SOFTWARE.
 """
 import numpy as np
 import matplotlib.transforms as mtransforms
+from mpl_toolkits import mplot3d
 
 #-- Artist-specific pick info functions --------------------------------------
 
@@ -227,6 +228,54 @@ def scatter_props(event):
     except IndexError:
         # Not created by scatter...
         return dict(s=s)
+
+def three_dim_props(event):
+    """
+    Get information for a pick event on a 3D artist.
+
+    Parameters
+    -----------
+    event : PickEvent
+        The pick event to process
+
+    Returns
+    --------
+    A dict with keys:
+        `x`: The estimated x-value of the click on the artist
+        `y`: The estimated y-value of the click on the artist
+        `z`: The estimated z-value of the click on the artist
+
+    Notes
+    -----
+    Based on mpl_toolkits.axes3d.Axes3D.format_coord
+    Many thanks to Ben Root for pointing this out!
+    """
+    ax = event.artist.axes
+    if ax.M is None:
+        return {}
+
+    xd, yd = event.mouseevent.xdata, event.mouseevent.ydata
+    p = (xd, yd)
+    edges = ax.tunit_edges()
+    ldists = [(mplot3d.proj3d.line2d_seg_dist(p0, p1, p), i) for \
+                i, (p0, p1) in enumerate(edges)]
+    ldists.sort()
+
+    # nearest edge
+    edgei = ldists[0][1]
+
+    p0, p1 = edges[edgei]
+
+    # scale the z value to match
+    x0, y0, z0 = p0
+    x1, y1, z1 = p1
+    d0 = np.hypot(x0-xd, y0-yd)
+    d1 = np.hypot(x1-xd, y1-yd)
+    dt = d0+d1
+    z = d1/dt * z0 + d0/dt * z1
+
+    x, y, z = mplot3d.proj3d.inv_transform(xd, yd, z, ax.M)
+    return dict(x=x, y=y, z=z)
 
 def rectangle_props(event):
     artist = event.artist

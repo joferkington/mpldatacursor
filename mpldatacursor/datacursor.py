@@ -311,8 +311,14 @@ class DataCursor(object):
         props['point_label'] = self._point_label(event)
 
         funcs = registry.get(type(event.artist), [default_func])
+
+        # 3D artist don't share inheritance. Fall back to naming convention.
+        if '3D' in type(event.artist).__name__:
+            funcs += [pick_info.three_dim_props]
+
         for func in funcs:
             props.update(func(event))
+
         return props
 
     def _point_label(self, event):
@@ -525,6 +531,11 @@ class DataCursor(object):
         # Update the xy position and text using the formatter function
         annotation.set_text(self.formatter(**info))
         annotation.xy = info['x'], info['y']
+
+        # Unfortnately, 3D artists are a bit more complex...
+        # Also, 3D artists don't share inheritance. Use naming instead.
+        if '3D' in type(event.artist).__name__:
+            annotation.xy = event.mouseevent.xdata, event.mouseevent.ydata
 
         # In case it's been hidden earlier...
         annotation.set_visible(True)
