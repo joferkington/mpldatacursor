@@ -348,15 +348,19 @@ class DataCursor(object):
                  or isinstance(fmt, mdates.AutoDateFormatter))
         def format_date(num):
             return mdates.num2date(num).strftime(self.date_format)
+
         ax = kwargs['event'].mouseevent.inaxes
-        if is_date(ax.xaxis):
-            x = format_date(x)
-        if is_date(ax.yaxis):
-            y = format_date(y)
 
         # Display x and y with range-specific formatting
-        x = self._format_coord(x, ax.get_xlim())
-        y = self._format_coord(y, ax.get_ylim())
+        if is_date(ax.xaxis):
+            x = format_date(x)
+        else:
+            x = self._format_coord(x, ax.get_xlim())
+
+        if is_date(ax.yaxis):
+            y = format_date(y)
+        else:
+            y = self._format_coord(y, ax.get_ylim())
 
         output = []
         for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
