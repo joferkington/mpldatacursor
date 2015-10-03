@@ -195,18 +195,41 @@ class DataCursor(object):
                 # Hide the annotation box until clicked...
                 self.annotations[ax].set_visible(False)
 
+        if keybindings:
+            if keybindings is True:
+                self.keybindings = self.default_keybindings
+            else:
+                self.keybindings = keybindings
+            for fig in self.figures:
+                fig.canvas.mpl_connect('key_press_event', self._on_keypress)
+
+        self._setup_timers()
+        self.enable()
+
+    def _setup_timers(self):
+        """Set up timers to limit call-rate and avoid "flickering" effect."""
+        self.timer_expired = {}
+        self.ax_timer = {}
+
         # Timer to control call-rate.
         def expire_func(ax, *args, **kwargs):
             self.timer_expired[ax] = True
             # Return True to keep callback
             return True
 
-        self.timer_expired = {}
-        self.ax_timer = {}
         for ax in self.axes:
             interval = 300 if self.hover else 100
-            self.ax_timer[ax] = ax.figure.canvas.new_timer(interval=interval,
-                                        callbacks=[(expire_func, [ax], {})])
+            try:
+                self.ax_timer[ax] = ax.figure.canvas.new_timer(
+                                        interval=interval,
+                                        callbacks=[(expire_func, [ax], {})],
+                                        )
+            except AttributeError:
+                # Some backends don't have timers at all!  Starting/stopping
+                # will raise an AttributeError, but this is caught regardless
+                # as some backend's timers don't support start/stop.
+                self.ax_timer[ax] = None
+
             try:
                 if plt.get_backend() != 'MacOSX':
                     # Single-shot timers on the OSX backend segfault!
@@ -217,16 +240,6 @@ class DataCursor(object):
                 # safely ignored.
                 pass
             self.timer_expired[ax] = True
-
-        if keybindings:
-            if keybindings is True:
-                self.keybindings = self.default_keybindings
-            else:
-                self.keybindings = keybindings
-            for fig in self.figures:
-                fig.canvas.mpl_connect('key_press_event', self._on_keypress)
-
-        self.enable()
 
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
