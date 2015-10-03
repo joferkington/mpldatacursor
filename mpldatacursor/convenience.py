@@ -138,7 +138,7 @@ def datacursor(artists=None, axes=None, **kwargs):
     keep_inside : boolean, optional
         Whether or not to adjust the x,y offset to keep the text box inside the
         figure. This option has no effect on draggable datacursors. Defaults to
-        True.
+        True. Note: Currently disabled on OSX and NbAgg/notebook backends.
     **kwargs : additional keyword arguments, optional
         Additional keyword arguments are passed on to annotate.
 

@@ -117,7 +117,8 @@ class DataCursor(object):
         keep_inside : boolean, optional
             Whether or not to adjust the x,y offset to keep the text box inside
             the figure. This option has no effect on draggable datacursors.
-            Defaults to True.
+            Defaults to True. Note: Currently disabled on OSX and
+            NbAgg/notebook backends.
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -553,7 +554,11 @@ class DataCursor(object):
         fig = anno.figure
 
         # Need to draw the annotation to get the correct extent
-        anno.draw(fig.canvas.renderer)
+        try:
+            anno.draw(fig.canvas.renderer)
+        except AttributeError:
+            # Can't draw properly on OSX and NbAgg backends. Disable keep_inside
+            return
         bbox = anno.get_window_extent()
 
         inside = [fig.bbox.contains(*corner) for corner in bbox.corners()]
