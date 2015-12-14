@@ -244,12 +244,10 @@ class DataCursor(object):
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
         to be a callback connected to matplotlib's pick event.)"""
-        # Hide the selected annotation box if it's clicked with "hide_button".
-        if (event.artist in self.annotations.values() and
-            event.mouseevent.button == self.hide_button):
-            self._hide_box(event.artist)
+        # Need to refactor self._select and this function. The separation is
+        # purely for historical reasons and could be simplified significantly.
 
-        elif not self._event_ignored(event):
+        if not self._event_ignored(event):
             # Otherwise, start a timer and show the annotation box
             try:
                 self.ax_timer[event.artist.axes].start()
@@ -627,12 +625,15 @@ class DataCursor(object):
             event.xdata, event.ydata = x, y
             return event
 
-        if self.draggable:
-            # If we're on top of an annotation box, don't do anything
-            for anno in self.annotations.values():
-                fixed_event = event_axes_data(event, anno.axes)
-                if anno.contains(fixed_event)[0]:
+        # If we're on top of an annotation box, hide it if right-clicked or
+        # do nothing if we're in draggable mode
+        for anno in self.annotations.values():
+            fixed_event = event_axes_data(event, anno.axes)
+            if anno.contains(fixed_event)[0]:
+                if self.draggable:
                     return
+                elif event.button == self.hide_button:
+                    self._hide_box(anno)
 
         for artist in self.artists:
             fixed_event = event_axes_data(event, artist.axes)
