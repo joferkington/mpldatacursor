@@ -630,10 +630,10 @@ class DataCursor(object):
         for anno in self.annotations.values():
             fixed_event = event_axes_data(event, anno.axes)
             if anno.contains(fixed_event)[0]:
-                if self.draggable:
-                    return
-                elif event.button == self.hide_button:
+                if event.button == self.hide_button:
                     self._hide_box(anno)
+                elif self.draggable:
+                    return
 
         for artist in self.artists:
             fixed_event = event_axes_data(event, artist.axes)
