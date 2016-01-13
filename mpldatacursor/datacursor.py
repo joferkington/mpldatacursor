@@ -234,10 +234,13 @@ class DataCursor(object):
                 if plt.get_backend() != 'MacOSX':
                     # Single-shot timers on the OSX backend segfault!
                     self.ax_timer[ax].single_shot = True
-            except AttributeError:
+            except Exception:
                 # For mpl <= 1.3.1 with the wxAgg backend, setting the
                 # timer to be single_shot will raise an error that can be
-                # safely ignored.
+                # safely ignored. On some other backends, we'll get a variety
+                # of other exceptions, so we can't just catch the 
+                # AttributeError. It should be safe to disable single_shot
+                # entirely if anything goes wrong, though.
                 pass
             self.timer_expired[ax] = True
 
