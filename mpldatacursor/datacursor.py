@@ -254,7 +254,7 @@ class DataCursor(object):
         if not self._event_ignored(event):
             # Otherwise, start a timer and show the annotation box
             # Timers are silently broken on Qt* backends with 3.5
-            three_five = sys.version.major == 3 and sys.version.minor == 5
+            three_five = sys.version_info[:2] == 3, 5
             qt = plt.get_backend().lower().startswith('qt')
             try:
                 if not (three_five and qt):
