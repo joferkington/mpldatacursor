@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import sys
 import itertools
 import copy
 import numpy as np
@@ -238,7 +239,7 @@ class DataCursor(object):
                 # For mpl <= 1.3.1 with the wxAgg backend, setting the
                 # timer to be single_shot will raise an error that can be
                 # safely ignored. On some other backends, we'll get a variety
-                # of other exceptions, so we can't just catch the 
+                # of other exceptions, so we can't just catch the
                 # AttributeError. It should be safe to disable single_shot
                 # entirely if anything goes wrong, though.
                 pass
@@ -252,9 +253,13 @@ class DataCursor(object):
 
         if not self._event_ignored(event):
             # Otherwise, start a timer and show the annotation box
+            # Timers are silently broken on Qt* backends with 3.5
+            three_five = sys.version.major == 3 and sys.version.minor == 5
+            qt = plt.get_backend().lower().startswith('qt')
             try:
-                self.ax_timer[event.artist.axes].start()
-                self.timer_expired[event.artist.axes] = False
+                if not (three_five and qt):
+                    self.ax_timer[event.artist.axes].start()
+                    self.timer_expired[event.artist.axes] = False
             except AttributeError:
                 # Nbagg timers can't be started with some versions.
                 # If this happens (AttributeError) don't use timers at all
