@@ -30,6 +30,8 @@ Version 0.6 adds:
 * Full support for interactive IPython notebooks through the nbagg backend.
   Note that the performance on the nbagg may be very poor.
 
+* Full support for matplotlib 1.5.x, Python 3.5, and Qt5 (in v0.6.2).
+
 * Numerous bugfixes (Thanks to everyone for the reports!).
 
 Basic Usage
