@@ -206,12 +206,14 @@ class DataCursor(object):
         self._setup_timers()
         self.enable()
 
-        # With newer versions of python, we'll need to make sure the datacursor
-        # isn't garbage collected until the figure/axes are.
-        try:
-            self.figures[0]._mpldatacursors.append(self)
-        except AttributeError:
-            self.figures[0]._mpldatacursors = [self]
+        # We need to make sure the DataCursor isn't garbage collected until the
+        # figure is.  Matplotlib's weak references won't keep this DataCursor
+        # instance alive in all cases.
+        for fig in self.figures:
+            try:
+                fig._mpldatacursors.append(self)
+            except AttributeError:
+                fig._mpldatacursors = [self]
 
     def _setup_timers(self):
         """Set up timers to limit call-rate and avoid "flickering" effect."""
