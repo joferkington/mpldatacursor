@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import sys
 import itertools
 import copy
 import numpy as np
@@ -207,6 +206,13 @@ class DataCursor(object):
         self._setup_timers()
         self.enable()
 
+        # With newer versions of python, we'll need to make sure the datacursor
+        # isn't garbage collected until the figure/axes are.
+        try:
+            self.figures[0]._mpldatacursors.append(self)
+        except AttributeError:
+            self.figures[0]._mpldatacursors = [self]
+
     def _setup_timers(self):
         """Set up timers to limit call-rate and avoid "flickering" effect."""
         self.timer_expired = {}
@@ -253,13 +259,9 @@ class DataCursor(object):
 
         if not self._event_ignored(event):
             # Otherwise, start a timer and show the annotation box
-            # Timers are silently broken on Qt* backends with 3.5
-            three_five = sys.version_info[:2] == 3, 5
-            qt = plt.get_backend().lower().startswith('qt')
             try:
-                if not (three_five and qt):
-                    self.ax_timer[event.artist.axes].start()
-                    self.timer_expired[event.artist.axes] = False
+                self.ax_timer[event.artist.axes].start()
+                self.timer_expired[event.artist.axes] = False
             except AttributeError:
                 # Nbagg timers can't be started with some versions.
                 # If this happens (AttributeError) don't use timers at all
