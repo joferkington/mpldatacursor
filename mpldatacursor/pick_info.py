@@ -103,74 +103,57 @@ def line_props(event):
 
     # ax.step is actually implemented as a Line2D with a different drawstyle...
     drawstyle = event.artist.get_drawstyle()
-    lookup = {'steps-pre':_interpolate_steps_pre,
-              'steps-post':_interpolate_steps_post,
-              'steps-mid':_interpolate_steps_mid,
-              'default':_interpolate_line}
-    x, y = lookup[drawstyle](xorig[[i, i+1]], yorig[[i, i+1]], xclick, yclick)
+    xs_data = xorig[max(i - 1, 0) : i + 2]
+    ys_data = yorig[max(i - 1, 0) : i + 2]
+    if drawstyle == "steps_pre":
+        xs_data = _interleave(xs_data, xs_data[:-1])
+        ys_data = _interleave(ys_data, ys_data[1:])
+    elif drawstyle == "steps_post":
+        xs_data = _interleave(xs_data, xs_data[1:])
+        ys_data = _interleave(ys_data, ys_data[:-1])
+    elif drawstyle == "steps_mid":
+        mid_xs = (xs_data[:-1] + xs_data[1:]) / 2
+        xs_data = _interleave(xs_data, np.column_stack([mid_xs, mid_xs]))
+        ys_data = _interleave(
+            ys_data, np.column_stack([ys_data[:-1], ys_data[1:]]))
+    xs_data = np.append(xs_data, xclick)
+    ys_data = np.append(ys_data, yclick)
+    trans_data = event.mouseevent.inaxes.transData
+    xs_screen, ys_screen = (
+        trans_data.transform(np.column_stack([xs_data, ys_data]))).T
+    x_screen, y_screen = _interpolate_line(xs_screen[:-1], ys_screen[:-1],
+                                            xs_screen[-1], ys_screen[-1])
+    x, y = trans_data.inverted().transform([x_screen, y_screen])
 
     return dict(x=x, y=y)
 
+def _interleave(a, b):
+    """Interleave arrays a and b; b may have multiple columns and must be
+    shorter by 1.
+    """
+    c = np.column_stack([a, np.append(b, 0)])
+    return c.ravel()[:-(c.shape[1] - 1)]
+
 def _interpolate_line(xorig, yorig, xclick, yclick):
-    """Find the nearest point on a single line segment to the point *xclick*
+    """Find the nearest point on a polyline segment to the point *xclick*
     *yclick*."""
-    (x0, x1), (y0, y1) = xorig, yorig
-    vec1 = np.array([x1 - x0, y1 - y0])
-    vec1 /= np.linalg.norm(vec1)
-    vec2 = np.array([xclick - x0, yclick - y0])
-    dist_along = vec1.dot(vec2)
-    x, y = np.array([x0, y0]) + dist_along * vec1
+    candidates = []
+    # The closest point may be a vertex.
+    for x, y in zip(xorig, yorig):
+        candidates.append((np.hypot(xclick - x, yclick - y), (x, y)))
+    # Or it may be a projection on a segment.
+    for (x0, x1), (y0, y1) in zip(zip(xorig, xorig[1:]), zip(yorig, yorig[1:])):
+        vec1 = np.array([x1 - x0, y1 - y0])
+        vec1 /= np.linalg.norm(vec1)
+        vec2 = np.array([xclick - x0, yclick - y0])
+        dist_along = vec1.dot(vec2)
+        x, y = np.array([x0, y0]) + dist_along * vec1
+        # Drop if out of the segment.
+        if (x - x0) * (x - x1) > 0 or (y - y0) * (y - y1) > 0:
+            continue
+        candidates.append((np.hypot(xclick - x, yclick - y), (x, y)))
+    _, (x, y) = min(candidates)
     return x, y
-
-def _interpolate_steps_pre(xorig, yorig, xclick, yclick):
-    """Interpolate x,y for a stepped line with the default "pre" steps."""
-    (x0, x2), (y0, y2) = xorig, yorig
-    x1, y1 = x0, y2
-    return _interpolate_steps([x0, x1, x2], [y0, y1, y2], xclick, yclick)
-
-def _interpolate_steps_post(xorig, yorig, xclick, yclick):
-    """Interpolate x,y for a stepped line with "post" steps."""
-    (x0, x2), (y0, y2) = xorig, yorig
-    x1, y1 = x2, y0
-    return _interpolate_steps([x0, x1, x2], [y0, y1, y2], xclick, yclick)
-
-def _interpolate_steps_mid(xorig, yorig, xclick, yclick):
-    """Interpolate x,y for a stepped line with "post" steps."""
-    (x0, x3), (y0, y3) = xorig, yorig
-    x1, y1 = np.mean(xorig), y0
-    x2, y2 = x1, y3
-    x, y = [x0, x1, x2, x3], [y0, y1, y2, y3]
-    return _interpolate_steps(x, y, xclick, yclick)
-
-def _interpolate_steps(xvals, yvals, xclick, yclick):
-    """Multi-segment version of _interpolate_line."""
-    segments, distances = [], []
-    for x, y in zip(zip(xvals, xvals[1:]), zip(yvals, yvals[1:])):
-        dist = _dist2line([x[0], y[0]], [x[1], y[1]], [xclick, yclick])
-        distances.append(dist)
-        segments.append([x, y])
-
-    i = np.argmin(distances)
-    x, y = segments[i]
-    return _interpolate_line(x, y, xclick, yclick)
-
-def _dist2line(v, w, p):
-    """
-    Nearest distance from a point *p* to a finite line segment formed from the
-    x,y pairs *v* and *w*. Loosely based on: http://stackoverflow.com/a/1501725
-    """
-    def _dist(a, b):
-        return np.hypot(*(a - b))
-
-    v, w, p = np.atleast_1d(v, w, p)
-    t = np.dot(p - v, w - v) / np.linalg.norm(w - v)
-    if t < 0:
-        return _dist(p, v)
-    elif t > 1:
-        return _dist(p, w)
-    else:
-        projection = v + t * (w - v)
-        return _dist(p, projection)
 
 def collection_props(event):
     """
