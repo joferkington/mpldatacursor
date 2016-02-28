@@ -79,7 +79,7 @@ def line_props(event):
 
     This will yield x and y values that are interpolated between verticies
     (instead of just being the position of the mouse) or snapped to the nearest
-    vertex only the vertices are drawn.
+    vertex if only the vertices are drawn.
 
     Parameters
     -----------
@@ -95,10 +95,9 @@ def line_props(event):
     i = event.ind[0]
     xorig, yorig = event.artist.get_xydata().T
 
-    # For points-only lines, snap to the nearest point (or if we're at the last
-    # point, don't bother interpolating and do the same thing.)
+    # For points-only lines, snap to the nearest point.
     linestyle = event.artist.get_linestyle()
-    if linestyle in ['none', ' ', '', None, 'None'] or i == xorig.size - 1:
+    if linestyle in ['none', ' ', '', None, 'None']:
         return dict(x=xorig[i], y=yorig[i])
 
     # ax.step is actually implemented as a Line2D with a different drawstyle...
@@ -116,14 +115,18 @@ def line_props(event):
         xs_data = _interleave(xs_data, np.column_stack([mid_xs, mid_xs]))
         ys_data = _interleave(
             ys_data, np.column_stack([ys_data[:-1], ys_data[1:]]))
-    xs_data = np.append(xs_data, xclick)
-    ys_data = np.append(ys_data, yclick)
-    trans_data = event.mouseevent.inaxes.transData
+    # The artist transform may be different from the axes transform (e.g.,
+    # axvline/axhline)
+    artist_transform = event.artist.get_transform()
+    axes_transform = event.artist.axes.transData
     xs_screen, ys_screen = (
-        trans_data.transform(np.column_stack([xs_data, ys_data]))).T
-    x_screen, y_screen = _interpolate_line(xs_screen[:-1], ys_screen[:-1],
-                                            xs_screen[-1], ys_screen[-1])
-    x, y = trans_data.inverted().transform([x_screen, y_screen])
+        artist_transform.transform(
+            np.column_stack([xs_data, ys_data]))).T
+    xclick_screen, yclick_screen = (
+        axes_transform.transform([xclick, yclick]))
+    x_screen, y_screen = _interpolate_line(xs_screen, ys_screen,
+                                           xclick_screen, yclick_screen)
+    x, y = axes_transform.inverted().transform([x_screen, y_screen])
 
     return dict(x=x, y=y)
 
