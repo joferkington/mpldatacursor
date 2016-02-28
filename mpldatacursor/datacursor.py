@@ -21,6 +21,7 @@ SOFTWARE.
 """
 import itertools
 import copy
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cbook
@@ -217,41 +218,7 @@ class DataCursor(object):
 
     def _setup_timers(self):
         """Set up timers to limit call-rate and avoid "flickering" effect."""
-        self.timer_expired = {}
-        self.ax_timer = {}
-
-        # Timer to control call-rate.
-        def expire_func(ax, *args, **kwargs):
-            self.timer_expired[ax] = True
-            # Return True to keep callback
-            return True
-
-        for ax in self.axes:
-            interval = 300 if self.hover else 100
-            try:
-                self.ax_timer[ax] = ax.figure.canvas.new_timer(
-                                        interval=interval,
-                                        callbacks=[(expire_func, [ax], {})],
-                                        )
-            except AttributeError:
-                # Some backends don't have timers at all!  Starting/stopping
-                # will raise an AttributeError, but this is caught regardless
-                # as some backend's timers don't support start/stop.
-                self.ax_timer[ax] = None
-
-            try:
-                if plt.get_backend() != 'MacOSX':
-                    # Single-shot timers on the OSX backend segfault!
-                    self.ax_timer[ax].single_shot = True
-            except Exception:
-                # For mpl <= 1.3.1 with the wxAgg backend, setting the
-                # timer to be single_shot will raise an error that can be
-                # safely ignored. On some other backends, we'll get a variety
-                # of other exceptions, so we can't just catch the
-                # AttributeError. It should be safe to disable single_shot
-                # entirely if anything goes wrong, though.
-                pass
-            self.timer_expired[ax] = True
+        self.ignore_until = {}
 
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
@@ -260,15 +227,9 @@ class DataCursor(object):
         # purely for historical reasons and could be simplified significantly.
 
         if not self._event_ignored(event):
-            # Otherwise, start a timer and show the annotation box
-            try:
-                self.ax_timer[event.artist.axes].start()
-                self.timer_expired[event.artist.axes] = False
-            except AttributeError:
-                # Nbagg timers can't be started with some versions.
-                # If this happens (AttributeError) don't use timers at all
-                pass
-
+            # Update last call time.
+            interval = .3 if self.hover else .1
+            self.ignore_until[event.artist.axes] = time.time() + interval
             self._show_annotation_box(event)
 
     def _event_ignored(self, event):
@@ -285,7 +246,7 @@ class DataCursor(object):
                 return True
 
             # Return if multiple events are firing
-            if not self.timer_expired[event.artist.axes]:
+            if time.time() < self.ignore_until.get(event.artist.axes, 0):
                 return True
 
         return False
@@ -658,8 +619,10 @@ class DataCursor(object):
 
         all_artists = itertools.chain(self.artists, self.annotations.values())
         over_something = [x.contains(event)[0] for x in all_artists]
+        any_expired = any(time.time() > ignore_until
+                          for ignore_until in self.ignore_until.values())
 
-        if any(self.timer_expired.values()) and not self.draggable:
+        if any_expired and not self.draggable:
             # Not hovering over anything...
             if not any(over_something) and self.hover:
                 self.hide()
