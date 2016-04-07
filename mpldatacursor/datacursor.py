@@ -234,6 +234,10 @@ class DataCursor(object):
 
     def _event_ignored(self, event):
         """Decide whether or not to ignore a click/hover event."""
+        # Ignore if another action (zoom, pan) is active
+        if event.canvas.widgetlock.locked():
+            return True
+
         # Ignore non-hiding pick events for the annotation box itself
         # (otherwise, draggable annotation boxes won't work) and pick
         # events not for the artists that this data cursor manages.
