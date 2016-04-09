@@ -204,7 +204,7 @@ class DataCursor(object):
             for fig in self.figures:
                 fig.canvas.mpl_connect('key_press_event', self._on_keypress)
 
-        self._setup_timers()
+        self.ignore_until = {}
         self.enable()
 
         # We need to make sure the DataCursor isn't garbage collected until the
@@ -215,10 +215,6 @@ class DataCursor(object):
                 fig._mpldatacursors.append(self)
             except AttributeError:
                 fig._mpldatacursors = [self]
-
-    def _setup_timers(self):
-        """Set up timers to limit call-rate and avoid "flickering" effect."""
-        self.ignore_until = {}
 
     def __call__(self, event):
         """Create or update annotations for the given event. (This is intended
