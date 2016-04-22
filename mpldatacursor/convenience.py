@@ -166,5 +166,3 @@ def datacursor(artists=None, axes=None, **kwargs):
         artists = [artist for ax in axes for artist in plotted_artists(ax)]
 
     return DataCursor(artists, **kwargs)
-
-
