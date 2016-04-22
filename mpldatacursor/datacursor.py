@@ -338,7 +338,7 @@ class DataCursor(object):
         def format_date(num):
             return mdates.num2date(num).strftime(self.date_format)
 
-        ax = kwargs['event'].mouseevent.inaxes
+        ax = kwargs['event'].artist.axes
 
         # Display x and y with range-specific formatting
         if is_date(ax.xaxis):
@@ -659,7 +659,7 @@ class HighlightingDataCursor(DataCursor):
             if self.display == 'multiple':
                 continue
             if self.display == 'one-per-axes':
-                if event.mouseevent.inaxes is not artist.axes:
+                if event.artist.axes is not artist.axes:
                     continue
             artist.set_visible(False)
         self.show_highlight(event.artist)
