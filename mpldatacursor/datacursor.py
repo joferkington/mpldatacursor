@@ -53,7 +53,8 @@ class DataCursor(object):
             edgecolor='black')
         )
 
-    default_keybindings = dict(hide='d', toggle='t')
+    default_keybindings = {'hide':'d', 'toggle':'t',
+                           'next':'shift+right', 'previous':'shift+left'}
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                  display='one-per-axes', draggable=False, hover=False,
@@ -100,9 +101,12 @@ class DataCursor(object):
         keybindings : boolean or dict, optional
             By default, the keys "d" and "t" will be bound to hiding/showing
             all annotation boxes and toggling interactivity for datacursors,
-            respectively.  If keybindings is False, the ability to hide/toggle
-            datacursors interactively will be disabled. Alternatively, a dict
-            of the form {'hide':'somekey', 'toggle':'somekey'} may specified to
+            respectively.  "<shift> + <right>" and "<shift> + <left>" will be
+            bound to moving the datacursor to the next and previous item in the
+            sequence for artists that support it. If keybindings is False, the
+            ability to hide/toggle datacursors interactively will be disabled.
+            Alternatively, a dict mapping "hide", "toggle", "next", and
+            "previous" to matplotlib key specifications may specified to
             customize the keyboard shortcuts.  Note that hitting the "hide" key
             once will hide datacursors, and hitting it again will show all of
             the hidden datacursors.
@@ -179,6 +183,8 @@ class DataCursor(object):
         self.figures = tuple(set(ax.figure for ax in self.axes))
         self._mplformatter = ScalarFormatter(useOffset=False, useMathText=True)
         self._hidden = False
+        self._last_event = None
+        self._last_annotation = None
 
         if self.draggable:
             # If we're dealing with draggable cursors, don't try to override
@@ -559,6 +565,9 @@ class DataCursor(object):
             self._keep_annotation_inside(annotation)
 
         annotation._has_been_shown = True
+        self._last_event = event
+        self._last_annotation = annotation
+
         event.canvas.draw()
 
     def _keep_annotation_inside(self, anno):
@@ -601,8 +610,38 @@ class DataCursor(object):
                 self.show()
             else:
                 self.hide()
-        if event.key == self.keybindings['toggle']:
+
+        elif event.key == self.keybindings['toggle']:
             self.enabled = not self.enabled
+
+        elif event.key == self.keybindings['next']:
+            self._increment_index(1)
+
+        elif event.key == self.keybindings['previous']:
+            self._increment_index(-1)
+
+    def _increment_index(self, di=1):
+        """
+        Move the most recently displayed annotation to the next item in the
+        series, if possible. If ``di`` is -1, move it to the previous item.
+        """
+        if self._last_event is None:
+            return
+
+        if not hasattr(self._last_event, 'ind'):
+            return
+
+        event = self._last_event
+        xy = pick_info.get_xy(event.artist)
+
+        if xy is not None:
+            x, y = xy
+            i = (event.ind[0] + di) % len(x)
+            event.ind = [i]
+            event.mouseevent.xdata = x[i]
+            event.mouseevent.ydata = y[i]
+
+            self.update(event, self._last_annotation)
 
     def _select(self, event):
         """This is basically a proxy to trigger a pick event.  This function is

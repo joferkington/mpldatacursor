@@ -25,15 +25,21 @@ from mpl_toolkits import mplot3d
 
 #-- Artist-specific pick info functions --------------------------------------
 
-def _coords2index(im, x, y):
+def _coords2index(im, x, y, inverted=False):
     """
     Converts data coordinates to index coordinates of the array.
 
     Parameters
     -----------
-    im : A matplotlib image artist.
-    x : The x-coordinate in data coordinates.
-    y : The y-coordinate in data coordinates.
+    im : An AxesImage instance
+        The image artist to operation on
+    x : number
+        The x-coordinate in data coordinates.
+    y : number
+        The y-coordinate in data coordinates.
+    inverted : bool, optional
+        If True, convert index to data coordinates instead of data coordinates
+        to index.
 
     Returns
     --------
@@ -46,6 +52,10 @@ def _coords2index(im, x, y):
     array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape[:2]])
     trans = mtransforms.BboxTransformFrom(data_extent) +\
             mtransforms.BboxTransformTo(array_extent)
+
+    if inverted:
+        trans = trans.inverted()
+
     return trans.transform_point([y,x]).astype(int)
 
 def image_props(event):
@@ -298,3 +308,19 @@ def rectangle_props(event):
     return dict(width=width, height=height, left=left, bottom=bottom,
                 label=label, right=right, top=top,
                 xcenter=xcenter, ycenter=ycenter)
+
+def get_xy(artist):
+    """
+    Attempts to get the x,y data for individual items subitems of the artist.
+    Returns None if this is not possible.
+
+    At present, this only supports Line2D's and basic collections.
+    """
+    xy = None
+
+    if hasattr(artist, 'get_offsets'):
+        xy = artist.get_offsets().T
+    elif hasattr(artist, 'get_xydata'):
+        xy = artist.get_xydata().T
+
+    return xy
