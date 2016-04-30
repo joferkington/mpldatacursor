@@ -601,11 +601,15 @@ class DataCursor(object):
             event.xdata, event.ydata = x, y
             return event
 
+        def contains(artist, event):
+            return (artist.contains(event) if event.inaxes is artist.axes
+                    else (False, {}))
+
         # If we're on top of an annotation box, hide it if right-clicked or
         # do nothing if we're in draggable mode
         for anno in self.annotations.values():
             fixed_event = event_axes_data(event, anno.axes)
-            if anno.contains(fixed_event)[0]:
+            if contains(anno, fixed_event)[0]:
                 if event.button == self.hide_button:
                     self._hide_box(anno)
                 elif self.draggable:
@@ -613,7 +617,7 @@ class DataCursor(object):
 
         for artist in self.artists:
             fixed_event = event_axes_data(event, artist.axes)
-            inside, info = artist.contains(fixed_event)
+            inside, info = contains(artist, fixed_event)
             if inside:
                 fig = artist.figure
                 new_event = PickEvent('pick_event', fig.canvas, fixed_event,
@@ -621,7 +625,7 @@ class DataCursor(object):
                 self(new_event)
 
         all_artists = itertools.chain(self.artists, self.annotations.values())
-        over_something = [x.contains(event)[0] for x in all_artists]
+        over_something = [contains(artist, event)[0] for artist in all_artists]
         any_expired = any(time.time() > ignore_until
                           for ignore_until in self.ignore_until.values())
 
