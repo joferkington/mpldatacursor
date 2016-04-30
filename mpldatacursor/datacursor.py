@@ -98,12 +98,14 @@ class DataCursor(object):
             the keys "x" and "y" (and probably several others).
             Expected call signature: `props_dict = props_override(**kwargs)`
         keybindings : boolean or dict, optional
-            By default, the keys "d" and "t" will be bound to deleting/hiding
+            By default, the keys "d" and "t" will be bound to hiding/showing
             all annotation boxes and toggling interactivity for datacursors,
             respectively.  If keybindings is False, the ability to hide/toggle
             datacursors interactively will be disabled. Alternatively, a dict
             of the form {'hide':'somekey', 'toggle':'somekey'} may specified to
-            customize the keyboard shortcuts.
+            customize the keyboard shortcuts.  Note that hitting the "hide" key
+            once will hide datacursors, and hitting it again will show all of
+            the hidden datacursors.
         date_format : string, optional
             The strftime-style formatting string for dates. Used only if the x
             or y axes have been set to display dates. Defaults to "%x %X".
@@ -176,6 +178,7 @@ class DataCursor(object):
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
         self._mplformatter = ScalarFormatter(useOffset=False, useMathText=True)
+        self._hidden = False
 
         if self.draggable:
             # If we're dealing with draggable cursors, don't try to override
@@ -415,6 +418,7 @@ class DataCursor(object):
                 kwargs[key] = self.default_annotation_kwargs[key]
 
         annotation = ax.annotate('This text will be reset', **kwargs)
+        annotation._has_been_shown = False
 
         # Place the annotation in the figure instead of the axes so that it
         # doesn't get hidden behind other subplots (zorder won't fix that).
@@ -454,8 +458,19 @@ class DataCursor(object):
     def hide(self):
         """Hides all annotation artists associated with the DataCursor. Returns
         self to allow "chaining". (e.g. ``datacursor.hide().disable()``)"""
+        self._hidden = True
         for artist in self.annotations.values():
             artist.set_visible(False)
+        for fig in self.figures:
+            fig.canvas.draw()
+        return self
+
+    def show(self):
+        """Display all hidden data cursors. Returns self to allow chaining."""
+        self._hidden = False
+        for artist in self.annotations.values():
+            if artist._has_been_shown:
+                artist.set_visible(True)
         for fig in self.figures:
             fig.canvas.draw()
         return self
@@ -543,6 +558,7 @@ class DataCursor(object):
         if self.keep_inside:
             self._keep_annotation_inside(annotation)
 
+        annotation._has_been_shown = True
         event.canvas.draw()
 
     def _keep_annotation_inside(self, anno):
@@ -581,7 +597,10 @@ class DataCursor(object):
 
     def _on_keypress(self, event):
         if event.key == self.keybindings['hide']:
-            self.hide()
+            if self._hidden:
+                self.show()
+            else:
+                self.hide()
         if event.key == self.keybindings['toggle']:
             self.enabled = not self.enabled
 

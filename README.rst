@@ -54,8 +54,11 @@ Hiding Annotation Boxes and Toggling Interactivity
 To hide a specific annotation box, right-click on it (Customizable through the
 ``hide_button`` kwarg).  To hide all annotation boxes, press "d" on the
 keyboard.  (Think of "delete".  "h" was taken by matplotlib's default key for
-"home".) To disable or re-enable interactive datacursors, press "t" (for
-"toggle").  These keys can be customized through the ``keybindings`` kwarg.  
+"home".) Hitting "d" again will re-display all of the datacursors that were
+hidde. To disable or re-enable interactive datacursors, press "t" (for
+"toggle").  Pressing "t" will prevent clicks from creating datacursors until
+"t" is pressed again. These keys can be customized through the ``keybindings``
+kwarg.  
 
 Controlling the Displayed Text
 ------------------------------
