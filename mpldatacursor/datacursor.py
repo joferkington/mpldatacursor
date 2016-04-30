@@ -461,8 +461,15 @@ class DataCursor(object):
         return self
 
     def _hide_box(self, annotation):
-        """Hide a specific annotation box."""
+        """Remove a specific annotation box."""
         annotation.set_visible(False)
+
+        if self.display == 'multiple':
+            annotation.axes.figure.texts.remove(annotation)
+            # Remove the annotation from self.annotations.
+            lookup = dict((self.annotations[k], k) for k in self.annotations)
+            del self.annotations[lookup[annotation]]
+
         annotation.figure.canvas.draw()
 
     def disable(self):
