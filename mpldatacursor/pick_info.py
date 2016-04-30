@@ -77,7 +77,7 @@ def line_props(event):
     Get information for a pick event on a Line2D artist (as created with
     ``plot``.)
 
-    This will yield x and y values that are interpolated between verticies
+    This will yield x and y values that are interpolated between vertices
     (instead of just being the position of the mouse) or snapped to the nearest
     vertex if only the vertices are drawn.
 

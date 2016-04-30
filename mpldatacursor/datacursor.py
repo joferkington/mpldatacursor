@@ -45,21 +45,20 @@ class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
 
-    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15),
-                textcoords='offset points', picker=True,
-                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5,
-                          edgecolor='black'),
-                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0',
-                                edgecolor='black'),
-                )
+    default_annotation_kwargs = dict(
+        xy=(0, 0), xytext=(-15, 15), textcoords='offset points', picker=True,
+        bbox=dict(
+            boxstyle='round,pad=.5', fc='yellow', alpha=.5, edgecolor='black'),
+        arrowprops=dict(
+            arrowstyle='->', connectionstyle='arc3,rad=0', edgecolor='black'))
 
     default_keybindings = dict(hide='d', toggle='t')
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                display='one-per-axes', draggable=False, hover=False,
-                props_override=None, keybindings=True, date_format='%x %X',
-		display_button=1, hide_button=3, keep_inside=True,
-                **kwargs):
+                 display='one-per-axes', draggable=False, hover=False,
+                 props_override=None, keybindings=True, date_format='%x %X',
+                 display_button=1, hide_button=3, keep_inside=True,
+                 **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -338,7 +337,7 @@ class DataCursor(object):
         def format_date(num):
             return mdates.num2date(num).strftime(self.date_format)
 
-        ax = kwargs['event'].mouseevent.inaxes
+        ax = kwargs['event'].artist.axes
 
         # Display x and y with range-specific formatting
         if is_date(ax.xaxis):
@@ -659,7 +658,7 @@ class HighlightingDataCursor(DataCursor):
             if self.display == 'multiple':
                 continue
             if self.display == 'one-per-axes':
-                if event.mouseevent.inaxes is not artist.axes:
+                if event.artist.axes is not artist.axes:
                     continue
             artist.set_visible(False)
         self.show_highlight(event.artist)
