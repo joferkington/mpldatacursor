@@ -49,7 +49,9 @@ class DataCursor(object):
         bbox=dict(
             boxstyle='round,pad=.5', fc='yellow', alpha=.5, edgecolor='black'),
         arrowprops=dict(
-            arrowstyle='->', connectionstyle='arc3,rad=0', edgecolor='black'))
+            arrowstyle='->', connectionstyle='arc3', shrinkB=0,
+            edgecolor='black')
+        )
 
     default_keybindings = dict(hide='d', toggle='t')
 
