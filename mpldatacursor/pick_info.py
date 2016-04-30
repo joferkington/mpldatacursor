@@ -264,12 +264,37 @@ def three_dim_props(event):
     return dict(x=x, y=y, z=z)
 
 def rectangle_props(event):
+    """
+    Returns the width, height, left, and bottom of a rectangle artist.
+
+    Parameters
+    -----------
+    event : PickEvent
+        The pick event to process
+
+    Returns
+    --------
+    A dict with keys:
+        `width` : The width of the rectangle
+        `height` : The height of the rectangle
+        `left` : The minimum x-coordinate of the rectangle
+        `right` : The maximum x-coordinate of the rectangle
+        `bottom` : The minimum y-coordinate of the rectangle
+        `top` : The maximum y-coordinate of the rectangle
+        `xcenter` : The mean x-coordinate of the rectangle
+        `ycenter` : The mean y-coordinate of the rectangle
+        `label` : The label for the rectangle or None
+    """
     artist = event.artist
     width, height = artist.get_width(), artist.get_height()
     left, bottom = artist.xy
+    right, top = left + width, bottom + height
+    xcenter = left + 0.5 * width
+    ycenter = bottom + 0.5 * height
     try:
         label = artist._mpldatacursor_label
     except AttributeError:
         label = None
     return dict(width=width, height=height, left=left, bottom=bottom,
-                label=label)
+                label=label, right=right, top=top,
+                xcenter=xcenter, ycenter=ycenter)
