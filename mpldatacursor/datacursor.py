@@ -23,7 +23,6 @@ import itertools
 import copy
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib import cbook
 from matplotlib import offsetbox
 
