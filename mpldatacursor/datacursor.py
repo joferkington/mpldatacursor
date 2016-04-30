@@ -602,8 +602,13 @@ class DataCursor(object):
             return event
 
         def contains(artist, event):
-            return (artist.contains(event) if event.inaxes is artist.axes
-                    else (False, {}))
+            """Need to ensure we don't trigger a pick event for axes in a
+            different figure. Otherwise, picking on one figure will trigger a
+            datacursor in another figure."""
+            if event.inaxes is artist.axes:
+                return artist.contains(event)
+            else:
+                return False, {}
 
         # If we're on top of an annotation box, hide it if right-clicked or
         # do nothing if we're in draggable mode
