@@ -17,8 +17,8 @@ ax.set(xticks=range(9), xticklabels=labels, title='Hover over a bar')
 # the bar plot. By changing the x and y values using the "props_override"
 # option, we can customize where the "popup" appears.
 def override(**kwargs):
-    kwargs['x'] = kwargs['left'] + 0.5 * kwargs['width']
-    kwargs['y'] = kwargs['bottom'] + kwargs['height']
+    kwargs['x'] = kwargs['xcenter']
+    kwargs['y'] = kwargs['top']
     kwargs['label'] = labels[int(kwargs['x'])]
     return kwargs
 

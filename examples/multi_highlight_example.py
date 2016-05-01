@@ -44,7 +44,7 @@ class MultiHighlight(mpldatacursor.HighlightingDataCursor):
         """
         # Two-way lookup table
         self.artist_map = dict(paired_artists)
-        self.artist_map.update([pair[::-1] for pair in paired_artists])
+        self.artist_map.update([pair[::-1] for pair in self.artist_map.items()])
 
         kwargs['display'] = 'single'
         artists = self.artist_map.values()

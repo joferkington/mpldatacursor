@@ -23,7 +23,6 @@ import itertools
 import copy
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib import cbook
 from matplotlib import offsetbox
 
@@ -45,21 +44,23 @@ class DataCursor(object):
     """A simple data cursor widget that displays the x,y location of a
     matplotlib artist in an annotation box when the artist is clicked on."""
 
-    default_annotation_kwargs = dict(xy=(0, 0), xytext=(-15, 15),
-                textcoords='offset points', picker=True,
-                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5,
-                          edgecolor='black'),
-                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0',
-                                edgecolor='black'),
-                )
+    default_annotation_kwargs = dict(
+        xy=(0, 0), xytext=(-15, 15), textcoords='offset points', picker=True,
+        bbox=dict(
+            boxstyle='round,pad=.5', fc='yellow', alpha=.5, edgecolor='black'),
+        arrowprops=dict(
+            arrowstyle='->', connectionstyle='arc3', shrinkB=0,
+            edgecolor='black')
+        )
 
-    default_keybindings = dict(hide='d', toggle='t')
+    default_keybindings = {'hide':'d', 'toggle':'t',
+                           'next':'shift+right', 'previous':'shift+left'}
 
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
-                display='one-per-axes', draggable=False, hover=False,
-                props_override=None, keybindings=True, date_format='%x %X',
-		display_button=1, hide_button=3, keep_inside=True,
-                **kwargs):
+                 display='one-per-axes', draggable=False, hover=False,
+                 props_override=None, keybindings=True, date_format='%x %X',
+                 display_button=1, hide_button=3, keep_inside=True,
+                 **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
         Parameters
@@ -98,12 +99,17 @@ class DataCursor(object):
             the keys "x" and "y" (and probably several others).
             Expected call signature: `props_dict = props_override(**kwargs)`
         keybindings : boolean or dict, optional
-            By default, the keys "d" and "t" will be bound to deleting/hiding
+            By default, the keys "d" and "t" will be bound to hiding/showing
             all annotation boxes and toggling interactivity for datacursors,
-            respectively.  If keybindings is False, the ability to hide/toggle
-            datacursors interactively will be disabled. Alternatively, a dict
-            of the form {'hide':'somekey', 'toggle':'somekey'} may specified to
-            customize the keyboard shortcuts.
+            respectively.  "<shift> + <right>" and "<shift> + <left>" will be
+            bound to moving the datacursor to the next and previous item in the
+            sequence for artists that support it. If keybindings is False, the
+            ability to hide/toggle datacursors interactively will be disabled.
+            Alternatively, a dict mapping "hide", "toggle", "next", and
+            "previous" to matplotlib key specifications may specified to
+            customize the keyboard shortcuts.  Note that hitting the "hide" key
+            once will hide datacursors, and hitting it again will show all of
+            the hidden datacursors.
         date_format : string, optional
             The strftime-style formatting string for dates. Used only if the x
             or y axes have been set to display dates. Defaults to "%x %X".
@@ -176,6 +182,9 @@ class DataCursor(object):
         self.axes = tuple(set(art.axes for art in self.artists))
         self.figures = tuple(set(ax.figure for ax in self.axes))
         self._mplformatter = ScalarFormatter(useOffset=False, useMathText=True)
+        self._hidden = False
+        self._last_event = None
+        self._last_annotation = None
 
         if self.draggable:
             # If we're dealing with draggable cursors, don't try to override
@@ -334,7 +343,7 @@ class DataCursor(object):
         def format_date(num):
             return mdates.num2date(num).strftime(self.date_format)
 
-        ax = kwargs['event'].mouseevent.inaxes
+        ax = kwargs['event'].artist.axes
 
         # Display x and y with range-specific formatting
         if is_date(ax.xaxis):
@@ -411,6 +420,7 @@ class DataCursor(object):
                 kwargs[key] = self.default_annotation_kwargs[key]
 
         annotation = ax.annotate('This text will be reset', **kwargs)
+        annotation._has_been_shown = False
 
         # Place the annotation in the figure instead of the axes so that it
         # doesn't get hidden behind other subplots (zorder won't fix that).
@@ -450,15 +460,33 @@ class DataCursor(object):
     def hide(self):
         """Hides all annotation artists associated with the DataCursor. Returns
         self to allow "chaining". (e.g. ``datacursor.hide().disable()``)"""
+        self._hidden = True
         for artist in self.annotations.values():
             artist.set_visible(False)
         for fig in self.figures:
             fig.canvas.draw()
         return self
 
+    def show(self):
+        """Display all hidden data cursors. Returns self to allow chaining."""
+        self._hidden = False
+        for artist in self.annotations.values():
+            if artist._has_been_shown:
+                artist.set_visible(True)
+        for fig in self.figures:
+            fig.canvas.draw()
+        return self
+
     def _hide_box(self, annotation):
-        """Hide a specific annotation box."""
+        """Remove a specific annotation box."""
         annotation.set_visible(False)
+
+        if self.display == 'multiple':
+            annotation.axes.figure.texts.remove(annotation)
+            # Remove the annotation from self.annotations.
+            lookup = dict((self.annotations[k], k) for k in self.annotations)
+            del self.annotations[lookup[annotation]]
+
         annotation.figure.canvas.draw()
 
     def disable(self):
@@ -532,6 +560,10 @@ class DataCursor(object):
         if self.keep_inside:
             self._keep_annotation_inside(annotation)
 
+        annotation._has_been_shown = True
+        self._last_event = event
+        self._last_annotation = annotation
+
         event.canvas.draw()
 
     def _keep_annotation_inside(self, anno):
@@ -570,9 +602,42 @@ class DataCursor(object):
 
     def _on_keypress(self, event):
         if event.key == self.keybindings['hide']:
-            self.hide()
-        if event.key == self.keybindings['toggle']:
+            if self._hidden:
+                self.show()
+            else:
+                self.hide()
+
+        elif event.key == self.keybindings['toggle']:
             self.enabled = not self.enabled
+
+        elif event.key == self.keybindings['next']:
+            self._increment_index(1)
+
+        elif event.key == self.keybindings['previous']:
+            self._increment_index(-1)
+
+    def _increment_index(self, di=1):
+        """
+        Move the most recently displayed annotation to the next item in the
+        series, if possible. If ``di`` is -1, move it to the previous item.
+        """
+        if self._last_event is None:
+            return
+
+        if not hasattr(self._last_event, 'ind'):
+            return
+
+        event = self._last_event
+        xy = pick_info.get_xy(event.artist)
+
+        if xy is not None:
+            x, y = xy
+            i = (event.ind[0] + di) % len(x)
+            event.ind = [i]
+            event.mouseevent.xdata = x[i]
+            event.mouseevent.ydata = y[i]
+
+            self.update(event, self._last_annotation)
 
     def _select(self, event):
         """This is basically a proxy to trigger a pick event.  This function is
@@ -598,11 +663,20 @@ class DataCursor(object):
             event.xdata, event.ydata = x, y
             return event
 
+        def contains(artist, event):
+            """Need to ensure we don't trigger a pick event for axes in a
+            different figure. Otherwise, picking on one figure will trigger a
+            datacursor in another figure."""
+            if event.inaxes is artist.axes:
+                return artist.contains(event)
+            else:
+                return False, {}
+
         # If we're on top of an annotation box, hide it if right-clicked or
         # do nothing if we're in draggable mode
         for anno in self.annotations.values():
             fixed_event = event_axes_data(event, anno.axes)
-            if anno.contains(fixed_event)[0]:
+            if contains(anno, fixed_event)[0]:
                 if event.button == self.hide_button:
                     self._hide_box(anno)
                 elif self.draggable:
@@ -610,7 +684,7 @@ class DataCursor(object):
 
         for artist in self.artists:
             fixed_event = event_axes_data(event, artist.axes)
-            inside, info = artist.contains(fixed_event)
+            inside, info = contains(artist, fixed_event)
             if inside:
                 fig = artist.figure
                 new_event = PickEvent('pick_event', fig.canvas, fixed_event,
@@ -618,7 +692,7 @@ class DataCursor(object):
                 self(new_event)
 
         all_artists = itertools.chain(self.artists, self.annotations.values())
-        over_something = [x.contains(event)[0] for x in all_artists]
+        over_something = [contains(artist, event)[0] for artist in all_artists]
         any_expired = any(time.time() > ignore_until
                           for ignore_until in self.ignore_until.values())
 
@@ -655,7 +729,7 @@ class HighlightingDataCursor(DataCursor):
             if self.display == 'multiple':
                 continue
             if self.display == 'one-per-axes':
-                if event.mouseevent.inaxes is not artist.axes:
+                if event.artist.axes is not artist.axes:
                     continue
             artist.set_visible(False)
         self.show_highlight(event.artist)

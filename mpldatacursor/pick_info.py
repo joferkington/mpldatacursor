@@ -25,15 +25,21 @@ from mpl_toolkits import mplot3d
 
 #-- Artist-specific pick info functions --------------------------------------
 
-def _coords2index(im, x, y):
+def _coords2index(im, x, y, inverted=False):
     """
     Converts data coordinates to index coordinates of the array.
 
     Parameters
     -----------
-    im : A matplotlib image artist.
-    x : The x-coordinate in data coordinates.
-    y : The y-coordinate in data coordinates.
+    im : An AxesImage instance
+        The image artist to operation on
+    x : number
+        The x-coordinate in data coordinates.
+    y : number
+        The y-coordinate in data coordinates.
+    inverted : bool, optional
+        If True, convert index to data coordinates instead of data coordinates
+        to index.
 
     Returns
     --------
@@ -46,6 +52,10 @@ def _coords2index(im, x, y):
     array_extent = mtransforms.Bbox([[0, 0], im.get_array().shape[:2]])
     trans = mtransforms.BboxTransformFrom(data_extent) +\
             mtransforms.BboxTransformTo(array_extent)
+
+    if inverted:
+        trans = trans.inverted()
+
     return trans.transform_point([y,x]).astype(int)
 
 def image_props(event):
@@ -77,7 +87,7 @@ def line_props(event):
     Get information for a pick event on a Line2D artist (as created with
     ``plot``.)
 
-    This will yield x and y values that are interpolated between verticies
+    This will yield x and y values that are interpolated between vertices
     (instead of just being the position of the mouse) or snapped to the nearest
     vertex if only the vertices are drawn.
 
@@ -264,12 +274,53 @@ def three_dim_props(event):
     return dict(x=x, y=y, z=z)
 
 def rectangle_props(event):
+    """
+    Returns the width, height, left, and bottom of a rectangle artist.
+
+    Parameters
+    -----------
+    event : PickEvent
+        The pick event to process
+
+    Returns
+    --------
+    A dict with keys:
+        `width` : The width of the rectangle
+        `height` : The height of the rectangle
+        `left` : The minimum x-coordinate of the rectangle
+        `right` : The maximum x-coordinate of the rectangle
+        `bottom` : The minimum y-coordinate of the rectangle
+        `top` : The maximum y-coordinate of the rectangle
+        `xcenter` : The mean x-coordinate of the rectangle
+        `ycenter` : The mean y-coordinate of the rectangle
+        `label` : The label for the rectangle or None
+    """
     artist = event.artist
     width, height = artist.get_width(), artist.get_height()
     left, bottom = artist.xy
+    right, top = left + width, bottom + height
+    xcenter = left + 0.5 * width
+    ycenter = bottom + 0.5 * height
     try:
         label = artist._mpldatacursor_label
     except AttributeError:
         label = None
     return dict(width=width, height=height, left=left, bottom=bottom,
-                label=label)
+                label=label, right=right, top=top,
+                xcenter=xcenter, ycenter=ycenter)
+
+def get_xy(artist):
+    """
+    Attempts to get the x,y data for individual items subitems of the artist.
+    Returns None if this is not possible.
+
+    At present, this only supports Line2D's and basic collections.
+    """
+    xy = None
+
+    if hasattr(artist, 'get_offsets'):
+        xy = artist.get_offsets().T
+    elif hasattr(artist, 'get_xydata'):
+        xy = artist.get_xydata().T
+
+    return xy
