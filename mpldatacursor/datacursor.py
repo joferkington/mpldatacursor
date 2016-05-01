@@ -674,7 +674,7 @@ class DataCursor(object):
 
         # If we're on top of an annotation box, hide it if right-clicked or
         # do nothing if we're in draggable mode
-        for anno in self.annotations.values():
+        for anno in list(self.annotations.values()):
             fixed_event = event_axes_data(event, anno.axes)
             if contains(anno, fixed_event)[0]:
                 if event.button == self.hide_button:
