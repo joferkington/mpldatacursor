@@ -301,10 +301,14 @@ def rectangle_props(event):
     right, top = left + width, bottom + height
     xcenter = left + 0.5 * width
     ycenter = bottom + 0.5 * height
-    try:
-        label = artist._mpldatacursor_label
-    except AttributeError:
-        label = None
+
+    label = artist.get_label()
+    if label is None or label.startswith('_nolegend'):
+        try:
+            label = artist._mpldatacursor_label
+        except AttributeError:
+            label = None
+
     return dict(width=width, height=height, left=left, bottom=bottom,
                 label=label, right=right, top=top,
                 xcenter=xcenter, ycenter=ycenter)
