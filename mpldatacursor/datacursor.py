@@ -209,7 +209,8 @@ class DataCursor(object):
             if keybindings is True:
                 self.keybindings = self.default_keybindings
             else:
-                self.keybindings = keybindings
+                self.keybindings = self.default_keybindings.copy()
+                self.keybindings.update(keybindings)
             for fig in self.figures:
                 fig.canvas.mpl_connect('key_press_event', self._on_keypress)
 
