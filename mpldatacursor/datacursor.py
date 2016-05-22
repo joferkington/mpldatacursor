@@ -21,7 +21,6 @@ SOFTWARE.
 """
 import itertools
 import copy
-import time
 import numpy as np
 from matplotlib import cbook
 from matplotlib import offsetbox
@@ -214,7 +213,6 @@ class DataCursor(object):
             for fig in self.figures:
                 fig.canvas.mpl_connect('key_press_event', self._on_keypress)
 
-        self.ignore_until = {}
         self.enable()
 
         # We need to make sure the DataCursor isn't garbage collected until the
@@ -233,9 +231,6 @@ class DataCursor(object):
         # purely for historical reasons and could be simplified significantly.
 
         if not self._event_ignored(event):
-            # Update last call time.
-            interval = .3 if self.hover else .1
-            self.ignore_until[event.artist.axes] = time.time() + interval
             self._show_annotation_box(event)
 
     def _event_ignored(self, event):
@@ -253,10 +248,6 @@ class DataCursor(object):
         if not self.hover:
             # Ignore pick events from other mouse buttons
             if event.mouseevent.button != self.display_button:
-                return True
-
-            # Return if multiple events are firing
-            if time.time() < self.ignore_until.get(event.artist.axes, 0):
                 return True
 
         return False
@@ -696,14 +687,11 @@ class DataCursor(object):
                 # we'll need timers, etc to avoid multiple calls
                 break
 
-        all_artists = itertools.chain(self.artists, self.annotations.values())
-        over_something = [contains(artist, event)[0] for artist in all_artists]
-        any_expired = any(time.time() > ignore_until
-                          for ignore_until in self.ignore_until.values())
-
-        if any_expired and not self.draggable:
-            # Not hovering over anything...
-            if not any(over_something) and self.hover:
+        # Not hovering over anything...
+        if self.hover:
+            artists = itertools.chain(self.artists, self.annotations.values())
+            over_something = [contains(artist, event)[0] for artist in artists]
+            if not any(over_something):
                 self.hide()
 
 class HighlightingDataCursor(DataCursor):
