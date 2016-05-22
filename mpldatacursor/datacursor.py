@@ -573,7 +573,7 @@ class DataCursor(object):
         # Need to draw the annotation to get the correct extent
         try:
             anno.draw(fig.canvas.renderer)
-        except AttributeError:
+        except (AttributeError, RuntimeError):
             # Can't draw properly on OSX and NbAgg backends. Disable keep_inside
             return
         bbox = anno.get_window_extent()
