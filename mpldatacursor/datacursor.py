@@ -692,6 +692,10 @@ class DataCursor(object):
                                      artist, **info)
                 self(new_event)
 
+                # Only fire a single pick event for one mouseevent. Otherwise
+                # we'll need timers, etc to avoid multiple calls
+                break
+
         all_artists = itertools.chain(self.artists, self.annotations.values())
         over_something = [contains(artist, event)[0] for artist in all_artists]
         any_expired = any(time.time() > ignore_until
