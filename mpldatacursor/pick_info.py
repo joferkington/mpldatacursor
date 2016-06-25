@@ -111,20 +111,25 @@ def line_props(event):
         return dict(x=xorig[i], y=yorig[i])
 
     # ax.step is actually implemented as a Line2D with a different drawstyle...
-    drawstyle = event.artist.get_drawstyle()
     xs_data = xorig[max(i - 1, 0) : i + 2]
     ys_data = yorig[max(i - 1, 0) : i + 2]
-    if drawstyle == "steps_pre":
+    drawstyle = event.artist.drawStyles[event.artist.get_drawstyle()]
+    if drawstyle == "_draw_lines":
+        pass
+    elif drawstyle == "_draw_steps_pre":
         xs_data = _interleave(xs_data, xs_data[:-1])
         ys_data = _interleave(ys_data, ys_data[1:])
-    elif drawstyle == "steps_post":
+    elif drawstyle == "_draw_steps_post":
         xs_data = _interleave(xs_data, xs_data[1:])
         ys_data = _interleave(ys_data, ys_data[:-1])
-    elif drawstyle == "steps_mid":
+    elif drawstyle == "_draw_steps_mid":
         mid_xs = (xs_data[:-1] + xs_data[1:]) / 2
         xs_data = _interleave(xs_data, np.column_stack([mid_xs, mid_xs]))
         ys_data = _interleave(
             ys_data, np.column_stack([ys_data[:-1], ys_data[1:]]))
+    else:
+        raise ValueError(
+            "Unknown drawstyle: {}".format(event.artist.get_drawstyle()))
     # The artist transform may be different from the axes transform (e.g.,
     # axvline/axhline)
     artist_transform = event.artist.get_transform()
@@ -144,7 +149,11 @@ def _interleave(a, b):
     """Interleave arrays a and b; b may have multiple columns and must be
     shorter by 1.
     """
-    c = np.column_stack([a, np.append(b, 0)])
+    b = np.column_stack([b]) # Turn b into a column array.
+    nx, ny = b.shape
+    c = np.zeros((nx + 1, ny + 1))
+    c[:, 0] = a
+    c[:-1, 1:] = b
     return c.ravel()[:-(c.shape[1] - 1)]
 
 def _interpolate_line(xorig, yorig, xclick, yclick):
