@@ -659,7 +659,7 @@ class DataCursor(object):
             """Need to ensure we don't trigger a pick event for axes in a
             different figure. Otherwise, picking on one figure will trigger a
             datacursor in another figure."""
-            if event.inaxes is artist.axes:
+            if event.canvas is artist.figure.canvas:
                 return artist.contains(event)
             else:
                 return False, {}
