@@ -138,6 +138,7 @@ class DataCursor(object):
                     children = item.get_children()
                     for child in children:
                         child._mpldatacursor_label = item.get_label()
+                        child._mpldatacursor_parent = item
                     output += children
                 else:
                     output.append(item)
@@ -281,9 +282,10 @@ class DataCursor(object):
                 AxesImage : [pick_info.image_props],
                 PathCollection : [pick_info.scatter_props, self._contour_info,
                                   pick_info.collection_props],
-                Line2D : [pick_info.line_props],
+                Line2D : [pick_info.line_props, pick_info.errorbar_props],
                 LineCollection : [pick_info.collection_props,
-                                  self._contour_info],
+                                  self._contour_info,
+                                  pick_info.errorbar_props],
                 PatchCollection : [pick_info.collection_props,
                                    self._contour_info],
                 PolyCollection : [pick_info.collection_props,
@@ -333,7 +335,8 @@ class DataCursor(object):
             return (isinstance(fmt, mdates.DateFormatter)
                  or isinstance(fmt, mdates.AutoDateFormatter))
         def format_date(num):
-            return mdates.num2date(num).strftime(self.date_format)
+            if num is not None:
+                return mdates.num2date(num).strftime(self.date_format)
 
         ax = kwargs['event'].artist.axes
 
@@ -341,12 +344,16 @@ class DataCursor(object):
         if is_date(ax.xaxis):
             x = format_date(x)
         else:
-            x = self._format_coord(x, ax.get_xlim())
+            limits = ax.get_xlim()
+            x = self._format_coord(x, limits)
+            kwargs['xerror'] = self._format_coord(kwargs.get('xerror'), limits)
 
         if is_date(ax.yaxis):
             y = format_date(y)
         else:
-            y = self._format_coord(y, ax.get_ylim())
+            limits = ax.get_ylim()
+            y = self._format_coord(y, limits)
+            kwargs['yerror'] = self._format_coord(kwargs.get('yerror'), limits)
 
         output = []
         for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
@@ -366,6 +373,11 @@ class DataCursor(object):
         if kwargs.get(u'point_label', None) is not None:
             output.append(u'Point: ' + u', '.join(kwargs['point_label']))
 
+        for arg in ['xerror', 'yerror']:
+            val = kwargs.get(arg, None)
+            if val is not None:
+                output.append(u'{}: {}'.format(arg, val))
+
         return u'\n'.join(output)
 
     def _format_coord(self, x, limits):
@@ -379,6 +391,9 @@ class DataCursor(object):
         limits : 2-item sequence
             The min and max of the current display limits for the axis.
         """
+        if x is None:
+            return None
+
         formatter = self._mplformatter
         # Trick the formatter into thinking we have an axes
         # The 7 tick locations is arbitrary but gives a reasonable detail level
