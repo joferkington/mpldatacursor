@@ -225,6 +225,37 @@ def scatter_props(event):
         # Not created by scatter...
         return dict(s=s)
 
+def errorbar_props(event):
+    if hasattr(event.artist, '_mpldatacursor_parent'):
+        container = event.artist._mpldatacursor_parent
+    else:
+        return {}
+    
+    if hasattr(event, 'ind') and event.ind is not None:
+        i = event.ind[0]
+    else:
+        return {}
+
+    xerr = yerr = [None] * i
+    if container.has_yerr and container.has_xerr:
+        xerr = _extract_xerr(container[2][0])
+        yerr = _extract_yerr(container[2][1])
+    elif container.has_yerr:
+        xerr = _extract_xerr(container[2][0])
+    elif container.has_xerr:
+        yerr = _extract_xerr(container[2][0])
+
+    x, y = container[0].get_xydata().T
+    return {'xerror':xerr[i], 'yerror':yerr[i], 'x':x[i], 'y':y[i]}
+
+def _extract_yerr(errbar_artist):
+    segments = errbar_artist.get_segments()
+    return [abs(np.diff(seg[:,1])[0]) for seg in segments]
+
+def _extract_xerr(errbar_artist):
+    segments = errbar_artist.get_segments()
+    return [abs(np.diff(seg[:,0])[0]) for seg in segments]
+
 def three_dim_props(event):
     """
     Get information for a pick event on a 3D artist.
