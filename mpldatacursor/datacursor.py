@@ -534,6 +534,15 @@ class DataCursor(object):
         if not getattr(self, '_enabled', False):
             self._cids = [(fig, connect(fig)) for fig in self.figures]
             self._enabled = True
+            try:
+                # Newer versions of MPL use set_pickradius
+                for artist in self.artists:
+                    artist.set_pickradius(self.tolerance)
+            except AttributeError:
+                # Older versions of MPL control pick radius through set_picker
+                for artist in self.artists:
+                    artist.set_picker(self.tolerance)
+
         return self
 
     def _set_enabled(self, value):
