@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name = 'mpldatacursor',
-    version = '0.6-dev',
+    version = '0.6.2',
     description = "Interactive data cursors for Matplotlib",
     author = 'Joe Kington',
     author_email = 'joferkington@gmail.com',
