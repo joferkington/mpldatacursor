@@ -21,6 +21,7 @@ SOFTWARE.
 """
 from matplotlib import _pylab_helpers as pylab_helpers
 from matplotlib import cbook
+import numpy as np
 
 from .datacursor import DataCursor
 
@@ -157,7 +158,7 @@ def datacursor(artists=None, axes=None, **kwargs):
         figs = [manager.canvas.figure for manager in managers]
         axes = [ax for fig in figs for ax in fig.axes]
 
-    if not cbook.iterable(axes):
+    if not np.iterable(axes):
         axes = [axes]
 
     # If no artists are specified, get all manually plotted artists in all of

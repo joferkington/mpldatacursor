@@ -144,7 +144,7 @@ class DataCursor(object):
                     output.append(item)
             return output
 
-        if not cbook.iterable(artists):
+        if not np.iterable(artists):
             artists = [artists]
 
         #-- Deal with contour sets... -------------------------------------
