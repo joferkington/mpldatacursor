@@ -345,15 +345,15 @@ class DataCursor(object):
             x = format_date(x)
         else:
             limits = ax.get_xlim()
-            x = self._format_coord(x, limits)
-            kwargs['xerror'] = self._format_coord(kwargs.get('xerror'), limits)
+            x = self._format_coord(x, ax.xaxis)
+            kwargs['xerror'] = self._format_coord(kwargs.get('xerror'), ax.xaxis)
 
         if is_date(ax.yaxis):
             y = format_date(y)
         else:
             limits = ax.get_ylim()
-            y = self._format_coord(y, limits)
-            kwargs['yerror'] = self._format_coord(kwargs.get('yerror'), limits)
+            y = self._format_coord(y, ax.yaxis)
+            kwargs['yerror'] = self._format_coord(kwargs.get('yerror'), ax.yaxis)
 
         output = []
         for key, val in zip(['x', 'y', 'z', 's'], [x, y, z, s]):
@@ -380,7 +380,7 @@ class DataCursor(object):
 
         return u'\n'.join(output)
 
-    def _format_coord(self, x, limits):
+    def _format_coord(self, x, axis):
         """
         Handles display-range-specific formatting for the x and y coords.
 
@@ -388,18 +388,28 @@ class DataCursor(object):
         ----------
         x : number
             The number to be formatted
-        limits : 2-item sequence
-            The min and max of the current display limits for the axis.
+        axis : matplotlib.axis.Axis
+            The Axis instance that we're working with (e.g. ax.xaxis, etc)
         """
         if x is None:
             return None
 
+        limits = axis.get_view_interval()
         formatter = self._mplformatter
         # Trick the formatter into thinking we have an axes
         # The 7 tick locations is arbitrary but gives a reasonable detail level
         formatter.locs = np.linspace(limits[0], limits[1], 7)
-        formatter._set_format(*limits)
-        formatter._set_orderOfMagnitude(abs(np.diff(limits)))
+
+        try:
+            # Older versions of mpl
+            formatter._set_orderOfMagnitude(abs(np.diff(limits)))
+            formatter._set_format(*limits)
+        except (AttributeError, TypeError):
+            # 3.1.1 or later
+            formatter.axis = axis
+            formatter._set_format()
+            formatter._set_order_of_magnitude()
+
         return formatter.pprint_val(x)
 
     def annotate(self, ax, **kwargs):
