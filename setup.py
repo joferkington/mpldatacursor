@@ -7,7 +7,7 @@ with open(path.join(root_dir, 'README.rst')) as infile:
 
 setup(
     name = 'mpldatacursor',
-    version = '0.7.0',
+    version = '0.7.1',
     description = "Interactive data cursors for Matplotlib",
     author = 'Joe Kington',
     author_email = 'joferkington@gmail.com',
