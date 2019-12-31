@@ -3,6 +3,23 @@ mpldatacursor
 ``mpldatacursor`` provides interactive "data cursors" (clickable annotation
 boxes) for matplotlib. 
 
+Major Changes in v0.7
+---------------------
+
+Version 0.7 adds several bugfixes and minor features that have accumulated in
+master since 2016 but have not been in the stable release.
+
+* Support for matplotlib 3.x 
+
+* Support for errorbars (error information displayed by default)
+
+* Allow hiding/toggling datacursor display by pressing "t"
+
+* Don't allow additional datacursors to be accidentally added during panning/zooming
+
+* Numerous bugfixes (special thanks to @anntzer and @nilswagner)
+
+
 Basic Usage
 -----------
 ``mpldatacursor`` offers a few different styles of interaction through the 
