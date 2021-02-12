@@ -169,7 +169,7 @@ As an example (This also demonstrates using the ``display='multiple'`` and ``dra
 
 .. image:: https://github.com/siriuspal/mpldatacursor/images/draggable_magnetic_example.png
     :align: center
-    :target: https://github.com/siriuspal/mpldatacursor/blob/master/examples/draggable_magnetic_example.py
+    :target: https://raw.githubusercontent.com/siriuspal/mpldatacursor/images/draggable_magnetic_example.png
 
 Further Customization
 ---------------------
