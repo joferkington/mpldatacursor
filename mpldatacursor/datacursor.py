@@ -737,7 +737,7 @@ class DataCursor(object):
         for artist in self.artists:
             fixed_event = event_axes_data(event, artist.axes)
             inside, info = contains(artist, fixed_event)
-            if inside:
+            if inside and artist.get_visible():
                 fig = artist.figure
                 
                 # If magnetic is True, update event to closest data points
