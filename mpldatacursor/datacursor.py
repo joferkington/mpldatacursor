@@ -199,7 +199,7 @@ class DataCursor(object):
 
         self._annotation_kwargs = kwargs
         self.annotations = {}
-        if self.display is not 'multiple':
+        if self.display != 'multiple':
             for ax in self.axes:
                 self.annotations[ax] = self.annotate(ax, **kwargs)
                 # Hide the annotation box until clicked...
