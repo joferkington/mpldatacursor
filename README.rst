@@ -147,6 +147,30 @@ As an example (This also demonstrates using the ``display='multiple'`` kwarg)::
     :align: center
     :target: https://github.com/joferkington/mpldatacursor/blob/master/examples/draggable_example.py
 
+Magnetic Cursors
+----------------
+If ``magnetic=True`` is specified, the annotations will only appear on actual data points and not the interpolated lines connecting them. This works with Line Charts and other artists which has x and y attributes. For other artists, ``magnetic`` has no effect.
+
+As an example (This also demonstrates using the ``display='multiple'`` and ``draggable='True'`` kwarg)::
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from mpldatacursor import datacursor
+
+        data = np.outer(range(10), range(1, 5))
+
+        fig, ax = plt.subplots()
+        ax.set_title('Try clicking in between data points')
+        ax.plot(data, 'o-')
+
+        datacursor(display='multiple', draggable=True, magnetic=True)
+
+        plt.show()
+
+.. image:: https://raw.githubusercontent.com/siriuspal/mpldatacursor/images/draggable_magnetic_example.png
+    :align: center
+    :target: https://github.com/siriuspal/mpldatacursor/blob/master/examples/draggable_magnetic_example.py
+
 Further Customization
 ---------------------
 Additional keyword arguments to ``datacursor`` are passed on to ``annotate``.

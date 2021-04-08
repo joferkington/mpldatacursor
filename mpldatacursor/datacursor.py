@@ -58,7 +58,7 @@ class DataCursor(object):
     def __init__(self, artists, tolerance=5, formatter=None, point_labels=None,
                  display='one-per-axes', draggable=False, hover=False,
                  props_override=None, keybindings=True, date_format='%x %X',
-                 display_button=1, hide_button=3, keep_inside=True,
+                 display_button=1, hide_button=3, keep_inside=True, magnetic=False,
                  **kwargs):
         """Create the data cursor and connect it to the relevant figure.
 
@@ -125,6 +125,11 @@ class DataCursor(object):
             the figure. This option has no effect on draggable datacursors.
             Defaults to True. Note: Currently disabled on OSX and
             NbAgg/notebook backends.
+        magnetic: boolean, optional
+            Magnetic will attach the cursor only to the data points.
+            Default is cursor can be added to interpolated lines.
+            If exact data point is not clicked, nearby data point will be selected.
+            Works with artists that have x, y attributes. Other plots will ignore Magnetic.
         **kwargs : additional keyword arguments, optional
             Additional keyword arguments are passed on to annotate.
         """
@@ -171,6 +176,7 @@ class DataCursor(object):
             self.display = 'single'
             self.draggable = False
 
+        self.magnetic = magnetic
         self.keep_inside = keep_inside
         self.tolerance = tolerance
         self.point_labels = point_labels
@@ -704,6 +710,20 @@ class DataCursor(object):
             else:
                 return False, {}
 
+        def magnetic_datapoint_adjustment(event, artist):
+            """Updates the event coordinates to one of the closest data points"""
+
+            try:
+                # Get closest data point of x-axis
+                x = min(artist._x, key=lambda x: abs(x-event.xdata))
+                # Identify index of x value in _x and then get y value from _y
+                y = artist._y[list(artist._x).index(x)]
+            # If artist do not have x and y attributes, example Image, PathCollection
+            except AttributeError:
+                pass
+            else:
+                event.xdata, event.ydata = x, y
+
         # If we're on top of an annotation box, hide it if right-clicked or
         # do nothing if we're in draggable mode
         for anno in list(self.annotations.values()):
@@ -717,10 +737,14 @@ class DataCursor(object):
         for artist in self.artists:
             fixed_event = event_axes_data(event, artist.axes)
             inside, info = contains(artist, fixed_event)
-            if inside:
+            if inside and artist.get_visible():
                 fig = artist.figure
-                new_event = PickEvent('pick_event', fig.canvas, fixed_event,
-                                     artist, **info)
+                
+                # If magnetic is True, update event to closest data points
+                if self.magnetic:
+                    magnetic_datapoint_adjustment(fixed_event, artist)
+
+                new_event = PickEvent('pick_event', fig.canvas, fixed_event, artist, **info)
                 self(new_event)
 
                 # Only fire a single pick event for one mouseevent. Otherwise
